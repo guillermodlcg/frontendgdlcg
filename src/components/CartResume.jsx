@@ -17,96 +17,98 @@ function CartResume() {
 
 
     return (
-        <div className='top-0 left-0 w-full h-full bg-white/10 flex
-                        justify-center items-center m-3 p-3'>
-            <div className='w-[80%] bg-white shadow-lg py-2 rounded-md'>
-                <h2
-                    className="flex justify-between items-center text-sm
-                                        font-bold text-gray-950 border-b
-                                        border-gray-300 py-3 px-4 md-4">
-                    Resumen de Compra.
-                    <IoCartOutline size={30} />
-                </h2>
-                <div className="flex flex-col px-4 pb-4">
+        <div className="max-w-4xl mx-auto">
+            <div className='bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden'>
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+                    <h2 className="flex justify-between items-center text-xl font-bold text-white">
+                        <span className="flex items-center gap-2">
+                            <IoCartOutline size={28} />
+                            Resumen de Compra
+                        </span>
+                        <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
+                            {getTotalProducts()} items
+                        </span>
+                    </h2>
+                </div>
+                
+                <div className="p-6">
                     {
                         cart.length > 0 ? (
-                            <div className="flex flex-col px-4 pb-4">
-                                <table>
-                                    <thead>
-                                        <tr className="text-gray-700 text-xs font-bold py-1 px-1 text-left">
-                                            <th>Cant.</th>
-                                            <th>Nombre</th>
-                                            <th>Precio</th>
-                                            <th className="text-right">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className='text-gray-950 text-xs font-semibold py-1 px-1 text-left'>
-                                        {
-                                            cart.map((product) => {
-                                                <tr key={product._id}
-                                                    className="hover:bg-gray-100"
-                                                >
-                                                    <td>{product.toSell}</td>
-                                                    <td>{product.name}</td>
-                                                    <td>{product.price}</td>
-                                                    <td className='text-right'>
-                                                        {(product.toSell * product.price).toFixed(2)}
-                                                    </td>
-                                                </tr>
-                                            })
-                                        }
-                                    </tbody>
-                                </table>
-                                <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-                    <div className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900">Total de productos </div>
-                    <div className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900">
-                        {getTotalProducts()}
-                    </div>
-                </div>
-                <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-                    <div className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900">Subtotal</div>
-                    <div className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900">
-                        ${(calculateSubTotal || 0).toFixed(2)}
-                    </div>
-                </div>
-                <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-    <div className="flex justify-between items-center text-sm font-medium
-                    text-gray-900">Iva (16%) </div>
-    <div className="flex justify-between items-center text-sm font-medium
-                    text-gray-900">
-        ${calculateIva(calculateSubTotal || 0).toFixed(2)} {/* ← Cambia esta línea */}
-    </div>
-</div>
-                <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-                    <div className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900">Total</div>
-                    <div className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900">
-                        ${(calculateTotal || 0).toFixed(2)}
-                    </div>
-                </div>
-                                <div className="flex justify-end px-4 pt-2">
-                                    <Tooltip content= "Finalizar orden" className="text-gray-700">
-                                    <button className="bg-transparent hover:bg-yellow-400
-                   text-yellow-500 font-semibold hover:text-white
-                   py-2 px-4 border border-gray-700
-                   hover:border-transparent rounded mb-2 mt-2 flex justify-center items-center"
-        onClick={confirmOrder}
-        >
-        Confirmar <GiConfirmed className="ml-2 w-5 h-5" size={30}/>
-
-</button>
+                            <div className="space-y-6">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="text-gray-600 dark:text-gray-300 text-sm font-semibold border-b-2 border-gray-200 dark:border-gray-700">
+                                                <th className="py-3 text-left">Cantidad</th>
+                                                <th className="py-3 text-left">Producto</th>
+                                                <th className="py-3 text-right">Precio</th>
+                                                <th className="py-3 text-right">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className='text-gray-700 dark:text-gray-300 text-sm'>
+                                            {
+                                                cart.map((product) => (
+                                                    <tr key={product._id}
+                                                        className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                                    >
+                                                        <td className="py-4 font-semibold">{product.toSell}</td>
+                                                        <td className="py-4 font-medium">{product.name}</td>
+                                                        <td className="py-4 text-right">${product.price}</td>
+                                                        <td className='py-4 text-right font-semibold'>
+                                                            ${(product.toSell * product.price).toFixed(2)}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 space-y-3">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Total de productos</span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">{getTotalProducts()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                            ${(calculateSubTotal || 0).toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">IVA (16%)</span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                            ${calculateIva(calculateSubTotal || 0).toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-3 border-t-2 border-gray-200 dark:border-gray-700">
+                                        <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
+                                        <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                            ${(calculateTotal || 0).toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex justify-end">
+                                    <Tooltip title="Confirmar y continuar">
+                                        <button 
+                                            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                            onClick={confirmOrder}
+                                        >
+                                            Confirmar
+                                            <GiConfirmed size={24}/>
+                                        </button>
                                     </Tooltip>
-                              </div>
+                                </div>
                             </div>
                         ) : (
-                            <div>
-                                <p className="text-center text-green-700">El carrito está vacío
-                                    El carrito está vacío, agregue productos para poder procesar la orden
+                            <div className="text-center py-12">
+                                <IoCartOutline className="mx-auto mb-4 text-gray-300 dark:text-gray-600" size={64} />
+                                <p className="text-gray-500 dark:text-gray-400 text-lg">
+                                    El carrito está vacío
+                                </p>
+                                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+                                    Agregue productos para poder procesar la orden
                                 </p>
                             </div>
                         )

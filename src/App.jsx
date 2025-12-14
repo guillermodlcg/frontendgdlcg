@@ -20,18 +20,20 @@ import SalesPage from "./pages/SalesPage";
 import { OrdersProvider } from "./context/OrderContext";
 import OrdersPage from "./pages/OrdersPage";
 import IdValidator from "./context/IdValidator";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   return (
-    <AuthProvider>
-      <ProductsProvider>
-        <OrdersProvider>
-          <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <ProductsProvider>
+          <OrdersProvider>
+            <BrowserRouter>
             <div className="flex flex-col min-h-screen">
               <div className="container mx-auto px-4 md:px-10">
                 <Navbar />
               </div>
-              <main className="flex-grow container mx-auto px-4 md:px-10">
+              <main className="flex-grow">
                 <ToastContainer
                   position="top-right"
                   autoClose={3000}
@@ -71,10 +73,11 @@ function App() {
               </main>
               <Footer />
             </div>
-          </BrowserRouter>
-        </OrdersProvider>
-      </ProductsProvider>
-    </AuthProvider>
+            </BrowserRouter>
+          </OrdersProvider>
+        </ProductsProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

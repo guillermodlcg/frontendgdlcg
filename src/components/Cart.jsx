@@ -71,152 +71,125 @@ function Cart() {
   }; //Fin de incrementProduct
 
   return (
-    <div
-      className="top-0 left-0 w-full h-full bg-white/10 flex
-                        justify-center items-center m-3 p-3"
-    >
-      <div className="w-2/5 bg-white shadow-lg py-2 rounded-md">
-        <h2
-          className="flex justify-between items-center text-sm
-                                        font-bold text-gray-950 border-b
-                                        border-gray-300 py-3 px-4"
-        >
-          Carrito de Compras.
-          <IoCartOutline size={30} />
-        </h2>
-        <div className="flex flex-col px-4 pb-4">
-          {cart.length > 0 ? (
-            <table>
-              <thead>
-                <tr className="text-gray-700 text-xs font-bold py-1 px-1 text-left">
-                  <th>Cant.</th>
-                  <th>Nombre</th>
-                  <th>Precio</th>
-                  <th className="text-right">Total</th>
-                  <th className="text-right">Opc.</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-950 text-xs font-semibold py-1 px-1 text-left">
-                {cart.map((product) => (
-                  <tr key={product._id} className="hover:bg-gray-100">
-                    <td>
-                      <span
-                        className="m-1 text-sm font-bold text-red-500"
-                        onClick={() => decrementProduct(product)}
-                      >
-                        -
-                      </span>
-                      {product.toSell}
-                      <span
-                        className="m-1 text-sm font-bold text-green-500"
-                        onClick={() => incrementProduct(product)}
-                      >
-                        +
-                      </span>
-                    </td>
-                    <td>{product.name}</td>
-                    <td>{product.price}</td>
-                    <td className="text-right">
-                      {(product.toSell * product.price).toFixed(2)}
-                    </td>
-                    <td className="text-right">
-                      <div className="flex items-center justify-end">
-                        <button
-                          className="m-1 p-1 text-sm font-bold text-yellow-500 text-right"
-                          onClick={() => {
-                            removeProduct(product._id);
-                            toast.warn("Producto eliminado del carrito");
-                          }}
-                        >
-                          <IoTrashBinOutline size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div>
-              <p className="text-center text-green-700">
-                El carrito está vacío
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+            <h2 className="flex justify-between items-center text-xl font-bold text-white">
+              <span className="flex items-center gap-2">
+                <IoCartOutline size={28} />
+                Carrito de Compras
+              </span>
+              <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
+                {getTotalProducts()} items
+              </span>
+            </h2>
+          </div>
+          <div className="p-6">
+            {cart.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-gray-600 dark:text-gray-300 text-sm font-semibold border-b-2 border-gray-200 dark:border-gray-700">
+                      <th className="py-3 text-left">Cantidad</th>
+                      <th className="py-3 text-left">Producto</th>
+                      <th className="py-3 text-right">Precio</th>
+                      <th className="py-3 text-right">Total</th>
+                      <th className="py-3 text-right">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-700 dark:text-gray-300 text-sm">
+                    {cart.map((product) => (
+                      <tr key={product._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <td className="py-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="w-8 h-8 flex items-center justify-center bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-bold"
+                              onClick={() => decrementProduct(product)}
+                            >
+                              -
+                            </button>
+                            <span className="w-10 text-center font-semibold">{product.toSell}</span>
+                            <button
+                              className="w-8 h-8 flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors font-bold"
+                              onClick={() => incrementProduct(product)}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 font-medium">{product.name}</td>
+                        <td className="py-4 text-right">${product.price}</td>
+                        <td className="py-4 text-right font-semibold">
+                          ${(product.toSell * product.price).toFixed(2)}
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                            onClick={() => {
+                              removeProduct(product._id);
+                              toast.warn("Producto eliminado del carrito");
+                            }}
+                          >
+                            <IoTrashBinOutline size={20} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <IoCartOutline className="mx-auto mb-4 text-gray-300 dark:text-gray-600" size={64} />
+                <p className="text-gray-500 dark:text-gray-400 text-lg">
+                  El carrito está vacío
+                </p>
+              </div>
+            )}
+          </div>
+
+          {cart.length > 0 && (
+            <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Total de productos</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{getTotalProducts()}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  ${(calculateSubTotal || 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 dark:text-gray-400">IVA (16%)</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  ${calculateIva(calculateSubTotal || 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t-2 border-gray-200 dark:border-gray-700">
+                <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
+                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  ${(calculateTotal || 0).toFixed(2)}
+                </span>
+              </div>
+              <Tooltip title="Procesar compra">
+                <button
+                  type="button"
+                  disabled={getTotalProducts() === 0}
+                  className={`w-full flex justify-center items-center gap-2 px-6 py-4 rounded-xl text-base font-semibold transition-all transform hover:scale-105 ${
+                    getTotalProducts() === 0
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl"
+                  }`}
+                  onClick={() => handleProcess()}
+                >
+                  Procesar compra
+                  <IoBagCheckOutline size={24} />
+                </button>
+              </Tooltip>
             </div>
           )}
-        </div>
-        <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            Total de productos{" "}
-          </div>
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            {getTotalProducts()}
-          </div>
-        </div>
-        <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            Subtotal
-          </div>
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            ${(calculateSubTotal || 0).toFixed(2)}
-          </div>
-        </div>
-        <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            Iva (16%){" "}
-          </div>
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            ${calculateIva(calculateSubTotal || 0).toFixed(2)}
-          </div>
-        </div>
-        <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            Total
-          </div>
-          <div
-            className="flex justify-between items-center text-sm font-medium
-                                    text-gray-900"
-          >
-            ${(calculateTotal || 0).toFixed(2)}
-          </div>
-        </div>
-        <div className="border-t border-gray-300 flex justify-between items-center px-4 pt-2">
-          <Tooltip title="Procesar">
-            <button
-              type="button"
-              disabled={getTotalProducts() === 0}
-              className={` flex justify-center items-center text-white px-4 py-2 rounded-lg text-sm
-                                            ${
-                                              getTotalProducts() === 0
-                                                ? "bg-green-100 opacity-60 cursor-not-allowed"
-                                                : "bg-green-500 hover:bg-green-600"
-                                            }
-                                    `}
-              onClick={() => handleProcess()}
-            >
-              Procesar <IoBagCheckOutline className="ml-2" size={30} />
-            </button>
-          </Tooltip>
         </div>
       </div>
     </div>

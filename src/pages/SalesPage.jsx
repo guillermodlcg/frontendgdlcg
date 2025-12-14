@@ -69,15 +69,15 @@ function SalesPage() {
       items: cart.map((item) => ({
         productId: item._id,
         productName: item.name || 'Producto sin nombre',
-        quantity: item.toSell.toFixed(0),
-        price: item.price.toFixed(2),
+        quantity: item.toSell.toString(),
+        price: item.price.toString(),
         talla: item.talla || 'Única',
         color: item.color || 'Sin especificar'
       })),
       paymentMethod: paymentMethodData,
-      totalProducts: getTotalProducts().toFixed(0),
-      subTotal: subTotalValue.toFixed(2),
-      total: totalValue.toFixed(2),
+      totalProducts: getTotalProducts().toString(),
+      subTotal: subTotalValue.toString(),
+      total: totalValue.toString(),
       iva: ivaValue.toFixed(2),
       status: "received",
     };
@@ -114,41 +114,57 @@ function SalesPage() {
   }, [stepOrder]); //Fin de useEffect
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      {/* Stepper */}
-      <div className="flex items-center justify-between mb-8">
-        {steps.map((step, index) => (
-          <div key={index} className="flex-1">
-            <div className="relative flex items-center justify-center">
-              <div
-                className={`w-10 h-10 flex items-center justify-center rounded-full text-white
-                  ${stepOrder >= index + 1 ? "bg-blue-500" : "bg-gray-300"}
-                `}
-              >
-                {index + 1}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Stepper mejorado */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => (
+              <div key={index} className="flex-1 relative">
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-12 h-12 flex items-center justify-center rounded-full text-white font-bold text-lg transition-all z-10 ${
+                      stepOrder >= index + 1
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg scale-110"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                  <span
+                    className={`mt-2 text-sm font-medium text-center ${
+                      stepOrder >= index + 1
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-gray-400 dark:text-gray-500"
+                    }`}
+                  >
+                    {step}
+                  </span>
+                </div>
+
+                {index < steps.length - 1 && (
+                  <div
+                    className={`absolute top-6 left-1/2 w-full h-1 -z-0 transition-all ${
+                      stepOrder > index + 1
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    }`}
+                    style={{
+                      transform: "translateY(-50%)",
+                    }}
+                  ></div>
+                )}
               </div>
-
-              {index < steps.length - 1 && (
-                <div
-                  className={`absolute w-full h-1
-                    ${stepOrder > index + 1 ? "bg-blue-500" : "bg-gray-300"}
-                  `}
-                  style={{
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                  }}
-                ></div>
-              )}
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Step Content */}
-      <div className="mb-4">
-        {stepOrder === 1 && <CartResume />}
-        {stepOrder === 2 && <AddPayment />}
-        {stepOrder === 3 && <AddAddress />}
+        {/* Step Content */}
+        <div>
+          {stepOrder === 1 && <CartResume />}
+          {stepOrder === 2 && <AddPayment />}
+          {stepOrder === 3 && <AddAddress />}
+        </div>
       </div>
     </div>
   );

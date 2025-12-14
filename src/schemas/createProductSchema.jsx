@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const CATEGORIAS = ['vestidos', 'blusas', 'pantalones', 'faldas', 'trajes', 'abrigos', 'accesorios'];
 const TALLAS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const TALLAS_ACCESORIOS = ['Único', 'Pequeño', 'Mediano', 'Grande'];
 
 export const productSchema = z.object({
     name: z.string('Nombre del producto requerido')
@@ -26,8 +27,22 @@ export const productSchema = z.object({
     categoria: z.enum(CATEGORIAS, {
         errorMap: () => ({ message: 'Categoría inválida' })
     }),
-    tallas: z.array(z.enum(TALLAS))
-        .min(1, {error: 'Debe seleccionar al menos una talla'}),
+    tallas: z.array(z.string())
+        .min(0, {error: 'Tallas inválidas'})
+        .optional()
+        .default([]),
     colores: z.array(z.string().min(1))
         .min(1, {error: 'Debe agregar al menos un color'}),
-});//Fin de ProductSchema
+}).refine(
+    (data) => {
+        // Si no es accesorio, debe tener al menos una talla
+        if (data.categoria !== 'accesorios') {
+            return data.tallas && data.tallas.length > 0;
+        }
+        return true;
+    },
+    {
+        message: 'Debe seleccionar al menos una talla',
+        path: ['tallas'],
+    }
+);//Fin de ProductSchema

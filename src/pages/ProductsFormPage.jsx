@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 
 const CATEGORIAS = ['vestidos', 'blusas', 'pantalones', 'faldas', 'trajes', 'abrigos', 'accesorios'];
 const TALLAS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const TALLAS_ACCESORIOS = ['Único', 'Pequeño', 'Mediano', 'Grande'];
 
 function ProductsFormPage() {
     const { register, handleSubmit, control, setValue, getValues, watch,
@@ -38,6 +39,13 @@ function ProductsFormPage() {
     const [updateImage, setUpdateImage] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [colores, setColores] = useState(['']);
+    
+    // Watch para ver la categoría seleccionada
+    const selectedCategoria = watch('categoria');
+    const selectedTallas = watch('tallas');
+    
+    // Determinar si es accesorio
+    const isAccesorio = selectedCategoria === 'accesorios';
 
     useEffect(() => {
         async function loadProduct() {
@@ -73,8 +81,6 @@ function ProductsFormPage() {
     }, []);
 
     // Watch para tallas seleccionadas
-    const selectedTallas = watch('tallas');
-
     const handleTallaChange = (talla) => {
         const currentTallas = getValues('tallas') || [];
         if (currentTallas.includes(talla)) {
@@ -274,10 +280,11 @@ function ProductsFormPage() {
                     {/* Tallas */}
                     <div className='mb-4'>
                         <label className='block mb-2 font-medium text-sm tracking-wide' style={{color: '#d4d4d4'}}>
-                            Tallas disponibles
+                            {isAccesorio ? 'Tamaños disponibles (opcional)' : 'Tallas disponibles'}
+                            {!isAccesorio && <span className='text-red-400 ml-1'>*</span>}
                         </label>
                         <div className='flex flex-wrap gap-3 p-4 rounded' style={{background: '#0f0f0f', border: '1px solid #2a2a2a'}}>
-                            {TALLAS.map(talla => (
+                            {(isAccesorio ? TALLAS_ACCESORIOS : TALLAS).map(talla => (
                                 <label key={talla} className='flex items-center space-x-2 cursor-pointer'>
                                     <input
                                         type="checkbox"
@@ -289,7 +296,10 @@ function ProductsFormPage() {
                                 </label>
                             ))}
                         </div>
-                        {errors.tallas && (
+                        {isAccesorio && (
+                            <p className='text-xs text-gray-400 mt-1'>Para accesorios como collares, aretes, etc., puedes dejar esto vacío o seleccionar "Único"</p>
+                        )}
+                        {errors.tallas && !isAccesorio && (
                             <span className='text-red-400 text-sm'>{errors.tallas.message}</span>
                         )}
                     </div>
