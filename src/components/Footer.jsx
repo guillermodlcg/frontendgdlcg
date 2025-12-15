@@ -69,21 +69,7 @@ function Footer() {
                   Sobre Nosotros
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-amber-400 transition-colors">
-                  Guía de Tallas
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-amber-400 transition-colors">
-                  Política de Devoluciones
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-amber-400 transition-colors">
-                  Términos y Condiciones
-                </a>
-              </li>
+
             </ul>
           </div>
 

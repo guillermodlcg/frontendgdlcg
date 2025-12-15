@@ -5,9 +5,9 @@ import { BsCalendar2Date } from "react-icons/bs";
 import PaymentMethodIcon from './PaymentMethodIcon';
 
 
-function PaymentInfo( method, cardDetails, userName ) {
+function PaymentInfo({ method, cardDetails, userName }) {
   return (
-    <div className="space-y-4 p-4 bg-white shadow-lg py-2 rounded-md text-gray-950 text-xs">
+    <div className="space-y-4 p-4 bg-white dark:bg-gray-800 shadow-lg py-2 rounded-md text-gray-950 dark:text-gray-100 text-xs">
       {
         method === 'card' ? (
           <div className="space-y-4 p-4 bg-white shadow-lg py-2 rounded-md text-gray-950 text-xs">
@@ -47,7 +47,14 @@ function PaymentInfo( method, cardDetails, userName ) {
             </div>
           </div>
         ) : method === 'pickup' ? (
-          <div className="space-y-4 p-4 bg-white shadow-lg py-2 rounded-md text-gray-950 text-xs">
+          <div className="space-y-4">
+            <div className="flex justify-between border-b border-gray-300 dark:border-gray-600 pb-2">
+              <span className="flex font-semibold mb-1">
+                Tipo de pago
+              </span>
+              <span><PaymentMethodIcon method={method}/></span>
+            </div>
+            
             <div className="flex justify-between">
               <span className="flex font-semibold mb-1">
                 <IoStorefrontOutline size={20} className="mr-2"/> Método de entrega:
@@ -63,7 +70,9 @@ function PaymentInfo( method, cardDetails, userName ) {
             </div>
           </div>
         ) : (
-          <span>Método de pago incorrecto</span>
+          <div className="text-center py-4">
+            <span className="text-red-500">Método de pago no reconocido: {method}</span>
+          </div>
         )
       }
     </div>

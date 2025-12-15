@@ -195,7 +195,7 @@ function AllProductsPage() {
                 </p>
             </div>
 
-            <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
                 <div className="flex gap-8 relative">
                     {/* Botón toggle para desktop */}
                     <button
@@ -220,7 +220,7 @@ function AllProductsPage() {
                         ${!showFiltersSidebar ? 'lg:hidden' : ''}
                         lg:relative
                         inset-0 lg:inset-auto
-                        w-full lg:w-72
+                        w-full lg:w-80
                         bg-white dark:bg-gray-900
                         z-50 lg:z-auto
                         overflow-y-auto
@@ -228,10 +228,10 @@ function AllProductsPage() {
                         shadow-2xl lg:shadow-none
                         transition-all duration-300
                     `}>
-                        <div className="h-full lg:h-auto bg-white dark:bg-gray-800 lg:border border-gray-200 dark:border-gray-700 rounded-none lg:rounded-lg overflow-hidden">
+                        <div className="h-full lg:h-auto bg-white dark:bg-gray-900 lg:border border-gray-200 dark:border-gray-700 rounded-none lg:rounded-2xl overflow-hidden shadow-xl">
                             {/* Header */}
-                            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                                <h2 className="text-base font-bold tracking-widest text-gray-400 dark:text-gray-500 uppercase">FILTROS</h2>
+                            <div className="flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 tracking-wide">Filtros</h2>
                                 <button 
                                     onClick={() => setShowFilters(false)}
                                     className="lg:hidden p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -240,24 +240,24 @@ function AllProductsPage() {
                                 </button>
                             </div>
 
-                            <div className="p-6 space-y-8">
+                            <div className="px-8 py-10 space-y-12">
                                 {/* ORDENAR POR */}
                                 <div>
-                                    <h3 className="text-xs font-bold tracking-widest mb-4 text-gray-900 dark:text-white uppercase">ORDENAR POR</h3>
-                                    <div className="space-y-2">
+                                    <h3 className="text-base font-semibold mb-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-600 pb-3">Ordenar por</h3>
+                                    <div className="space-y-4">
                                         {[
                                             { value: 'newest', label: 'Recomendados' },
                                             { value: 'price-high', label: 'Precio mayor' },
                                             { value: 'price-low', label: 'Precio menor' }
                                         ].map(option => (
-                                            <label key={option.value} className="flex items-center gap-3 cursor-pointer group">
+                                            <label key={option.value} className="flex items-center gap-4 cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors">
                                                 <input
                                                     type="checkbox"
                                                     checked={sortBy === option.value}
                                                     onChange={() => setSortBy(option.value)}
-                                                    className="w-4 h-4 border-2 border-gray-400 rounded-sm accent-gray-900 dark:accent-white cursor-pointer"
+                                                    className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-sm accent-gray-700 dark:accent-gray-300 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-gray-900 dark:text-gray-300 font-normal">
+                                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                                                     {option.label}
                                                 </span>
                                             </label>
@@ -267,19 +267,19 @@ function AllProductsPage() {
 
                                 {/* PRECIO */}
                                 <div>
-                                    <h3 className="text-xs font-bold tracking-widest mb-4 text-gray-900 dark:text-white uppercase">PRECIO</h3>
-                                    <div className="space-y-2">
+                                    <h3 className="text-base font-semibold mb-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-600 pb-3">Precio</h3>
+                                    <div className="space-y-4">
                                         {RANGOS_PRECIO.map(rango => (
-                                            <label key={rango.value} className="flex items-center gap-3 cursor-pointer group">
+                                            <label key={rango.value} className="flex items-center gap-4 cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedPriceRange === rango.value}
                                                     onChange={() => setSelectedPriceRange(
                                                         selectedPriceRange === rango.value ? '' : rango.value
                                                     )}
-                                                    className="w-4 h-4 border-2 border-gray-400 rounded-sm accent-gray-900 dark:accent-white cursor-pointer"
+                                                    className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-sm accent-gray-700 dark:accent-gray-300 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-gray-900 dark:text-gray-300 font-normal">
+                                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                                                     {rango.label}
                                                 </span>
                                             </label>
@@ -289,17 +289,17 @@ function AllProductsPage() {
 
                                 {/* CATEGORÍA */}
                                 <div>
-                                    <h3 className="text-xs font-bold tracking-widest mb-4 text-gray-900 dark:text-white uppercase">CATEGORÍA</h3>
-                                    <div className="space-y-2">
+                                    <h3 className="text-base font-semibold mb-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-600 pb-3">Categoría</h3>
+                                    <div className="space-y-4">
                                         {CATEGORIAS.map(cat => (
-                                            <label key={cat.value} className="flex items-center gap-3 cursor-pointer group">
+                                            <label key={cat.value} className="flex items-center gap-4 cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedCategories.includes(cat.value)}
                                                     onChange={() => toggleCategory(cat.value)}
-                                                    className="w-4 h-4 border-2 border-gray-400 rounded-sm accent-gray-900 dark:accent-white cursor-pointer"
+                                                    className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-sm accent-gray-700 dark:accent-gray-300 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-gray-900 dark:text-gray-300 font-normal capitalize">
+                                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium capitalize">
                                                     {cat.label}
                                                 </span>
                                             </label>
@@ -309,17 +309,17 @@ function AllProductsPage() {
 
                                 {/* TALLA */}
                                 <div>
-                                    <h3 className="text-xs font-bold tracking-widest mb-4 text-gray-900 dark:text-white uppercase">TALLA</h3>
-                                    <div className="flex flex-wrap gap-2">
+                                    <h3 className="text-base font-semibold mb-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-600 pb-3">Talla</h3>
+                                    <div className="flex flex-wrap gap-3">
                                         {TALLAS.map(talla => (
                                             <button
                                                 key={talla}
                                                 onClick={() => toggleTalla(talla)}
                                                 className={`
-                                                    min-w-[48px] px-3 py-2 text-sm font-medium border transition-all
+                                                    min-w-[52px] px-5 py-3 text-sm font-semibold border-2 rounded-lg transition-all duration-200 hover:scale-105
                                                     ${selectedTallas.includes(talla)
-                                                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                                                        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-900 dark:hover:border-white'
+                                                        ? 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 border-gray-800 dark:border-gray-200 shadow-md'
+                                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-600 dark:hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                                                     }
                                                 `}
                                             >
@@ -332,17 +332,17 @@ function AllProductsPage() {
                                 {/* COLOR */}
                                 {availableColors.length > 0 && (
                                     <div>
-                                        <h3 className="text-xs font-bold tracking-widest mb-4 text-gray-900 dark:text-white uppercase">COLOR</h3>
-                                        <div className="space-y-2">
+                                        <h3 className="text-base font-semibold mb-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-600 pb-3">Color</h3>
+                                        <div className="space-y-4">
                                             {availableColors.map(color => (
-                                                <label key={color} className="flex items-center gap-3 cursor-pointer group">
+                                                <label key={color} className="flex items-center gap-4 cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors">
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedColors.includes(color)}
                                                         onChange={() => toggleColor(color)}
-                                                        className="w-4 h-4 border-2 border-gray-400 rounded-sm accent-gray-900 dark:accent-white cursor-pointer"
+                                                        className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-sm accent-gray-700 dark:accent-gray-300 cursor-pointer"
                                                     />
-                                                    <span className="text-sm text-gray-900 dark:text-gray-300 font-normal uppercase">
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium uppercase">
                                                         {color}
                                                     </span>
                                                 </label>
@@ -353,18 +353,18 @@ function AllProductsPage() {
                             </div>
 
                             {/* Footer con botones */}
-                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex gap-3">
+                            <div className="px-8 py-6 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 flex gap-4">
                                 <button
                                     onClick={clearAllFilters}
-                                    className="flex-1 py-3 text-sm tracking-wider font-bold border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors uppercase"
+                                    className="flex-1 py-4 px-6 text-sm font-semibold border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:border-gray-500 dark:hover:border-gray-400 transition-all duration-200 rounded-xl hover:shadow-md"
                                 >
-                                    LIMPIAR
+                                    Limpiar
                                 </button>
                                 <button
                                     onClick={applyFilters}
-                                    className="flex-1 py-3 text-sm tracking-wider font-bold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors uppercase"
+                                    className="flex-1 py-4 px-6 text-sm font-semibold bg-gray-800 dark:bg-gray-200 hover:bg-gray-900 dark:hover:bg-gray-100 text-white dark:text-gray-900 transition-all duration-200 rounded-xl shadow-md hover:shadow-lg"
                                 >
-                                    FILTRAR
+                                    Aplicar
                                 </button>
                             </div>
                         </div>

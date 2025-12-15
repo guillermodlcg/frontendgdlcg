@@ -11,33 +11,32 @@ function SelectOrderStatus({ status, onChange }) {
   ];
 
   useEffect(() => {
-    if (selectedStatus !== status) {
-      onChange(selectedStatus);
-    }
-  }, [selectedStatus, status, onChange]);
+    setSelectedStatus(status);
+  }, [status]);
 
   //Si el estado es cancelled , deshabilitamos el select
   const isDisabled = status === "cancelled";
 
+  const handleStatusChange = (newStatus) => {
+    setSelectedStatus(newStatus);
+    onChange(newStatus);
+  };
+
   return (
-    <div className="relative flex select text-xs">
-      <div className="flex items-center space-x-3 mb-4">
-        <select
-          value={selectedStatus}
-          disabled={isDisabled}
-          onChange={(e) => {
-            setSelectedStatus(e.target.value);
-          }}
-          className="flex-1 py-1 bg-transparent focus:outline-none"
-        >
-          {selectOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <OrderStatus status={selectedStatus} showLabel={false} />
-      </div>
+    <div className="flex items-center space-x-3">
+      <select
+        value={selectedStatus}
+        disabled={isDisabled}
+        onChange={(e) => handleStatusChange(e.target.value)}
+        className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {selectOptions.map((option) => (
+          <option key={option.value} value={option.value} className="bg-white dark:bg-gray-700">
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <OrderStatus status={selectedStatus} showLabel={false} />
     </div>
   );
 }

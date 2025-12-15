@@ -31,13 +31,13 @@ function OrderInfo({ id, quantity, subtotal, iva, total, status, orderDate }) {
   };//Fin de handleStatusChange
 
   return (
-    <div className="space-y-4 p-4 bg-white shadow-lg py-2 rounded-md text-gray-950 text-shadow-2xs text-xs">
-      <div className="flex justify-between">
-        <span className="font-semibold">ID del Pedido:</span>
-        <span>{id}</span>
+    <div className="space-y-4 p-6 bg-white dark:bg-gray-800 shadow-lg rounded-md text-gray-950 dark:text-gray-100 text-sm">
+      <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+        <span className="font-semibold text-gray-700 dark:text-gray-300">ID del Pedido:</span>
+        <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{id.slice(-8)}</span>
       </div>
-      <div className="flex justify-between">
-        <span className="font-semibold">Estatus del pedido:</span>
+      <div className="flex justify-between items-center py-2">
+        <span className="font-semibold text-gray-700 dark:text-gray-300">Estatus del pedido:</span>
         {
         isAdmin ? (
           <SelectOrderStatus status={status}
@@ -49,25 +49,25 @@ function OrderInfo({ id, quantity, subtotal, iva, total, status, orderDate }) {
         />
         }
       </div>
-      <div className="flex justify-between">
-        <span className="font-semibold">Cantidad de Productos:</span>
-        <span>{quantity}</span>
+      <div className="flex justify-between items-center py-2">
+        <span className="font-semibold text-gray-700 dark:text-gray-300">Cantidad de Productos:</span>
+        <span className="font-medium">{quantity}</span>
       </div>
-      <div className="flex justify-between">
-        <span className="font-semibold">Subtotal:</span>
-        <span>${subtotal.toFixed(2)}</span>
+      <div className="flex justify-between items-center py-2">
+        <span className="font-semibold text-gray-700 dark:text-gray-300">Subtotal:</span>
+        <span className="font-medium">${subtotal.toFixed(2)}</span>
       </div>
-      <div className="flex justify-between">
-        <span className="font-semibold">IVA:</span>
-        <span>${iva.toFixed(2)}</span>
+      <div className="flex justify-between items-center py-2">
+        <span className="font-semibold text-gray-700 dark:text-gray-300">IVA:</span>
+        <span className="font-medium">${iva.toFixed(2)}</span>
       </div>
-      <div className="flex justify-between">
-        <span className="font-semibold">Total:</span>
-        <span>${total.toFixed(2)}</span>
+      <div className="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-700">
+        <span className="font-bold text-gray-800 dark:text-gray-200">Total:</span>
+        <span className="font-bold text-lg text-green-600 dark:text-green-400">${total.toFixed(2)}</span>
       </div>
-      <div className="flex justify-between">
-        <span className="font-semibold">Fecha del pedido:</span>
-        <span>{formatDate(orderDate)}</span>
+      <div className="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-700">
+        <span className="font-semibold text-gray-700 dark:text-gray-300">Fecha del pedido:</span>
+        <span className="font-medium text-sm">{formatDate(orderDate)}</span>
       </div>
     </div>
   );

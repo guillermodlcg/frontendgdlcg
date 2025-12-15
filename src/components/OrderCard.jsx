@@ -94,18 +94,24 @@ function OrderCard({ order }) {
   };
 
   return (
-    <div className="w-full min-w-0 grow bg-white shadow-md rounded-lg overflow-hidden">
-      <div className="border-b border-gray-200">
-        <div className="flex justify-around m-2">
-          <div>
-            <h2 className="text-xl font-semibold m-0 p-0 text-blue-700 text-center">
-              Información del Pedido
+    <div className="w-full max-w-2xl bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-6">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-blue-700 dark:text-blue-400 mb-3">
+              Pedido #{order._id.slice(-8)}
             </h2>
+            {isAdmin && order.user && (
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-300">
+                <p className="mb-1"><span className="font-semibold text-gray-800 dark:text-gray-200">Cliente:</span> {order.user.username || order.user.email}</p>
+                <p><span className="font-semibold text-gray-800 dark:text-gray-200">Email:</span> {order.user.email}</p>
+              </div>
+            )}
           </div>
-          <div>
+          <div className="flex gap-3">
             <Tooltip title="Cancelar Orden">
               <button
-                className="bg-red-400 hover:bg-red-500 text-white p-2 rounded-lg text-sm"
+                className="bg-red-500 hover:bg-red-600 text-white p-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md"
                 onClick={() => {
                   setIsModalOpen(true);
                 }}
@@ -124,30 +130,26 @@ function OrderCard({ order }) {
               btnAccept={"Confirmar"}
               btnCancel={"Cancelar"}
             />
-            <Tooltip
-              title="Actualizar Status de Orden"
-              className={isAdmin ? "" : "hidden"}
-            >
-              <button
-                className="bg-green-400 hover:bg-green-500 text-white p-2 rounded-lg text-sm"
-                onClick={() => {}}
-              >
-                <IoPencilOutline size={20} />
-              </button>
-            </Tooltip>
-            <Tooltip
-              title="Eliminar orden"
-              className={
-                isAdmin && order.status === "cancelled" ? "" : "hidden"
-              }
-            >
-              <button
-                className="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-lg text-sm m-1"
-                onClick={() => setIsDeleteModalOpen(true)}
-              >
-                <IoTrashBinOutline size={20} />
-              </button>
-            </Tooltip>
+            {isAdmin && (
+              <Tooltip title="Actualizar Status de Orden">
+                <button
+                  className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md"
+                  onClick={() => setActiveTab('info')}
+                >
+                  <IoPencilOutline size={20} />
+                </button>
+              </Tooltip>
+            )}
+            {isAdmin && order.status === "cancelled" && (
+              <Tooltip title="Eliminar orden">
+                <button
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white p-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                >
+                  <IoTrashBinOutline size={20} />
+                </button>
+              </Tooltip>
+            )}
             <ConfirmModal
               isOpen={isDeleteModalOpen}
               onClose={() => setIsDeleteModalOpen(false)}
@@ -161,18 +163,19 @@ function OrderCard({ order }) {
             />
           </div>
         </div>
-        <div className="flex border-b">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           {tabs.map(({ label, value, icon }) => (
             <button
               key={value}
               onClick={() => setActiveTab(value)}
-              className={`px-4 py-2 text-sm font-medium ${
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                 activeTab === value
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50"
               }`}
             >
-              {icon} {label}
+              {icon} 
+              <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
         </div>

@@ -28,10 +28,20 @@ export const ThemeProvider = ({ children }) => {
     useEffect(() => {
         // Aplicar tema al documento
         const root = document.documentElement;
+        const body = document.body;
+        
         if (theme === 'dark') {
             root.classList.add('dark');
+            body.classList.add('dark');
+            // Aplicar estilos adicionales para modo oscuro
+            body.style.backgroundColor = '#111827';
+            body.style.color = '#f9fafb';
         } else {
             root.classList.remove('dark');
+            body.classList.remove('dark');
+            // Aplicar estilos para modo claro
+            body.style.backgroundColor = '#ffffff';
+            body.style.color = '#111827';
         }
         
         // Guardar preferencia
@@ -54,7 +64,18 @@ export const ThemeProvider = ({ children }) => {
     }, []);
 
     const toggleTheme = () => {
-        setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        
+        // Aplicar transición suave
+        document.documentElement.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+        document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+        
+        // Remover transición después de completarse
+        setTimeout(() => {
+            document.documentElement.style.transition = '';
+            document.body.style.transition = '';
+        }, 300);
     };
 
     return (
