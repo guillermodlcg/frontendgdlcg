@@ -119,8 +119,8 @@ function AddPayment() {
         
         <div className="p-6 space-y-6">
           {/* Radio Buttons */}
-          <div className="flex justify-center gap-8 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl">
-            <div className="flex items-center gap-3">
+          <div className="flex justify-center gap-12 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl">
+            <div className="flex items-center gap-4">
               <input
                 id="pickup"
                 type="radio"
@@ -128,23 +128,23 @@ function AddPayment() {
                 {...register("paymentMethod")}
                 checked={paymentMethod === "pickup"}
                 onClick={() => handlePaymentMethodChange("pickup")}
-                className="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                className="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer"
               />
-              <label htmlFor="pickup" className="text-gray-900 dark:text-white font-medium cursor-pointer">
+              <label htmlFor="pickup" className="text-gray-900 dark:text-white font-medium cursor-pointer select-none">
                 Recoger en tienda
               </label>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <input
                 id="card"
                 type="radio"
                 value="card"
                 {...register("paymentMethod")}
                 onClick={() => handlePaymentMethodChange("card")}
-                className="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                className="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer"
               />
-              <label htmlFor="card" className="text-gray-900 dark:text-white font-medium cursor-pointer">
+              <label htmlFor="card" className="text-gray-900 dark:text-white font-medium cursor-pointer select-none">
                 Pago con tarjeta
               </label>
             </div>

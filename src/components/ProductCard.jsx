@@ -1,15 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useProducts } from "../context/ProductContext";
 import { useAuth } from '../context/AuthContext';
 import { Link } from "react-router-dom";
 import { IoTrashBinSharp, IoPencilSharp, IoBagAddSharp, IoHeartOutline, IoHeart } from "react-icons/io5";
 import Tooltip from "@mui/material/Tooltip";
 import { toast } from "react-toastify";
+import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from "../api/auth";
 
 function ProductCard({ product }) {
     const { deleteProduct, addToCart, incProduct, cart } = useProducts();
-    const { isAdmin } = useAuth();
+    const { isAdmin, isAuthenticated } = useAuth();
     const [isFavorite, setIsFavorite] = useState(false);
+
+    useEffect(() => {
+        if (isAuthenticated && !isAdmin) {
+            checkIfFavorite();
+        }
+    }, [isAuthenticated, isAdmin]);
+
+    const checkIfFavorite = async () => {
+        try {
+            const response = await getFavoritesRequest();
+            const favorites = response.data;
+            setIsFavorite(favorites.some(fav => fav._id === product._id));
+        } catch (error) {
+            console.error("Error al verificar favoritos:", error);
+        }
+    };
+
+    const toggleFavorite = async () => {
+        try {
+            if (isFavorite) {
+                await removeFavoriteRequest(product._id);
+                setIsFavorite(false);
+                toast.success("Producto quitado de favoritos");
+            } else {
+                await addFavoriteRequest(product._id);
+                setIsFavorite(true);
+                toast.success("Producto agregado a favoritos");
+            }
+        } catch (error) {
+            console.error("Error al actualizar favoritos:", error);
+            toast.error(error.response?.data?.message?.[0] || "Error al actualizar favoritos");
+        }
+    };
 
     const addingProduct = (product) => {
         const existingProduct = cart.find((cartItem) => cartItem._id === product._id);
@@ -37,17 +71,19 @@ function ProductCard({ product }) {
                 </div>
             )}
 
-            {/* Botón de favorito */}
-            <button
-                onClick={() => setIsFavorite(!isFavorite)}
-                className="absolute top-3 right-3 z-10 p-2 bg-white rounded-full hover:bg-gray-100 transition-all"
-            >
-                {isFavorite ? (
-                    <IoHeart size={20} className="text-red-500" />
-                ) : (
-                    <IoHeartOutline size={20} className="text-gray-700" />
-                )}
-            </button>
+            {/* Botón de favorito - Solo visible para usuarios autenticados no admin */}
+            {isAuthenticated && !isAdmin && (
+                <button
+                    onClick={toggleFavorite}
+                    className="absolute top-3 right-3 z-10 p-2 bg-white rounded-full hover:bg-gray-100 transition-all shadow-md"
+                >
+                    {isFavorite ? (
+                        <IoHeart size={20} className="text-red-500" />
+                    ) : (
+                        <IoHeartOutline size={20} className="text-gray-700" />
+                    )}
+                </button>
+            )}
 
             {/* Imagen del producto */}
             <Link to={isAdmin ? `/products/${product._id}` : '#'} className="block">

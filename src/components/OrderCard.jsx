@@ -37,10 +37,10 @@ function OrderCard({ order }) {
       content: (
         <OrderInfo
           id={order._id}
-          quantity={order.quantity}
+          quantity={order.totalProducts}
           subtotal={order.subTotal}
           iva={order.iva}
-          total={order.totalProducts}
+          total={order.total}
           status={order.status}
           orderDate={order.createdAt}
         />

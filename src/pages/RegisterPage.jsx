@@ -31,7 +31,7 @@ function RegisterPage() {
     useEffect(() => {
 
         if (isAuthenticated)
-            navigate('/getallproducts');
+            navigate('/');
 
     }, [isAuthenticated]);//Fin de UseEffect
 

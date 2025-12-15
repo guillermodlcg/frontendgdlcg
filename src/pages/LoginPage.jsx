@@ -29,7 +29,7 @@ function LoginPage() {
         if (isAuthenticated && isAdmin)
             navigate('/products');
         else
-            navigate('/getallproducts');
+            navigate('/');
 
     }, [isAuthenticated, isAdmin]); //Fin de UseEffect
 
