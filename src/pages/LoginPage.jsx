@@ -109,7 +109,7 @@ function LoginPage() {
 
                     <div className="flex justify-center">
                         <ReCaptcha
-                            sitekey="6Lc_0ygsAAAAANLEZ93vRF_NXLDMBe2sAw0dFdPO"
+                            sitekey="6LecBSwsAAAAAFQBXUtBTwpmOI8phCK604vlKEwU"
                             onChange={(value) => setCaptchaValue(value)}
                             aria-hidden="false"
                             theme="dark"
