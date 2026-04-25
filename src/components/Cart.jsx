@@ -1,197 +1,182 @@
-import React from "react";
-import {
-  IoBagCheckOutline,
-  IoCartOutline,
-  IoTrashBinOutline,
-} from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useProducts } from "../context/ProductContext";
-import Tooltip from "@mui/material/Tooltip";
 import { toast } from "react-toastify";
+import { ShoppingCart, Minus, Plus, Trash2, ArrowRight, ShoppingBag, Shield, RotateCcw, Truck } from "lucide-react";
+
+const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
+const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
 
 function Cart() {
-  const {
-    cart,
-    incProduct,
-    decProduct,
-    removeProduct,
-    getTotalProducts,
-    calculateSubTotal,
-    calculateIva,
-    calculateTotal,
-    updateStepOrder,
-  } = useProducts();
+  const { cart, incProduct, decProduct, removeProduct, getTotalProducts, calculateSubTotal, calculateIva, calculateTotal, updateStepOrder } = useProducts();
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
 
-  const handleProcess = () => {
-    updateStepOrder(1);
-    navigate("/sale");
+  const handleProcess = () => { updateStepOrder(1); navigate("/sale"); };
+
+  const incrementProduct = (product) => {
+    const existing = cart.find(i => i._id === product._id);
+    if (existing.toSell === existing.quantity) { toast.warn("Stock máximo: " + existing.quantity); return; }
+    incProduct(product._id);
+    toast.success("Cantidad actualizada");
   };
 
-  //Función para incrementar la cantidad de productos del carrito
-  const incrementProduct = (product) => {
-    const existingProduct = cart.find(
-      (cartItem) => cartItem._id === product._id
-    );
-
-    if (existingProduct.toSell == existingProduct.quantity) {
-      //Ya existe el producto en el carrito, validamos que
-      //no se exceda del maximo stock
-      toast.warn(
-        "Ha alcanzado el maximo de " +
-          existingProduct.quantity +
-          " productos en stock"
-      );
-      return;
-    } else {
-      //Si no ha alcanzado el maximo se incrementa la cantidad
-      incProduct(product._id);
-      toast.success("Producto agregado al carrito");
-    }
-    //Fin de else
-  }; //Fin de incrementProduct
-
-  //Funcion para decrementar la cantidad de productos en el carrito
   const decrementProduct = (product) => {
-    const existingProduct = cart.find(
-      (cartItem) => cartItem._id === product._id
-    );
+    const existing = cart.find(i => i._id === product._id);
+    if (existing.toSell > 1) { decProduct(product._id); toast.info("Cantidad decrementada"); }
+    else { removeProduct(product._id); toast.warn("Producto eliminado del carrito"); }
+  };
 
-    if (existingProduct.toSell > 1) {
-      //Ya existe el producto en el carrito, validamos que
-      //se piueda decrementar
-      decProduct(product._id);
-      toast.info("Cantidad decrementada");
-    } else {
-      //Se elimina el producto
-      removeProduct(product._id);
-      toast.warn("Producto eliminado del carrito");
-    }
-    //Fin de else
-  }; //Fin de incrementProduct
+  const fmt = (n) => Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 });
+  const subtotal = calculateSubTotal || 0;
+  const iva = calculateIva(subtotal);
+  const total = calculateTotal || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-            <h2 className="flex justify-between items-center text-xl font-bold text-white">
-              <span className="flex items-center gap-2">
-                <IoCartOutline size={28} />
-                Carrito de Compras
-              </span>
-              <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
-                {getTotalProducts()} items
-              </span>
-            </h2>
-          </div>
-          <div className="p-6">
-            {cart.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-gray-600 dark:text-gray-300 text-sm font-semibold border-b-2 border-gray-200 dark:border-gray-700">
-                      <th className="py-3 text-left">Cantidad</th>
-                      <th className="py-3 text-left">Producto</th>
-                      <th className="py-3 text-right">Precio</th>
-                      <th className="py-3 text-right">Total</th>
-                      <th className="py-3 text-right">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-gray-700 dark:text-gray-300 text-sm">
-                    {cart.map((product) => (
-                      <tr key={product._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <td className="py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="w-8 h-8 flex items-center justify-center bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-bold"
-                              onClick={() => decrementProduct(product)}
-                            >
-                              -
-                            </button>
-                            <span className="w-10 text-center font-semibold">{product.toSell}</span>
-                            <button
-                              className="w-8 h-8 flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors font-bold"
-                              onClick={() => incrementProduct(product)}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-4 font-medium">{product.name}</td>
-                        <td className="py-4 text-right">${product.price}</td>
-                        <td className="py-4 text-right font-semibold">
-                          ${(product.toSell * product.price).toFixed(2)}
-                        </td>
-                        <td className="py-4 text-right">
-                          <button
-                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                            onClick={() => {
-                              removeProduct(product._id);
-                              toast.warn("Producto eliminado del carrito");
-                            }}
-                          >
-                            <IoTrashBinOutline size={20} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <IoCartOutline className="mx-auto mb-4 text-gray-300 dark:text-gray-600" size={64} />
-                <p className="text-gray-500 dark:text-gray-400 text-lg">
-                  El carrito está vacío
-                </p>
-              </div>
-            )}
-          </div>
+    <div style={{ background: "#fafaf8", minHeight: "100vh", padding: isMobile ? "24px 16px" : "40px 64px" }}>
 
-          {cart.length > 0 && (
-            <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 space-y-3">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Total de productos</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{getTotalProducts()}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  ${(calculateSubTotal || 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400">IVA (16%)</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  ${calculateIva(calculateSubTotal || 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center pt-3 border-t-2 border-gray-200 dark:border-gray-700">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
-                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  ${(calculateTotal || 0).toFixed(2)}
-                </span>
-              </div>
-              <Tooltip title="Procesar compra">
-                <button
-                  type="button"
-                  disabled={getTotalProducts() === 0}
-                  className={`w-full flex justify-center items-center gap-2 px-6 py-4 rounded-xl text-base font-semibold transition-all transform hover:scale-105 ${
-                    getTotalProducts() === 0
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl"
-                  }`}
-                  onClick={() => handleProcess()}
-                >
-                  Procesar compra
-                  <IoBagCheckOutline size={24} />
-                </button>
-              </Tooltip>
-            </div>
-          )}
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
+        <p style={DM(11, 600, { color: "#8a9bb0", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 6 })}>Tu carrito</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <h1 style={BC("40px", { color: "#0f1f35", margin: 0 })}>CARRITO DE COMPRAS</h1>
+          <span style={{ background: "#eef2f8", color: "#1d4b8a", borderRadius: 20, padding: "4px 12px", ...DM(12, 500) }}>
+            {getTotalProducts()} productos
+          </span>
         </div>
       </div>
+
+      {cart.length === 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: 16 }}>
+          <ShoppingCart size={64} color="#e5e0d8" />
+          <h2 style={BC("28px", { color: "#0f1f35", margin: 0 })}>TU CARRITO ESTÁ VACÍO</h2>
+          <p style={DM(14, 400, { color: "#8a9bb0" })}>Agrega productos para comenzar tu compra</p>
+          <Link to="/getallproducts" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#0f1f35", color: "#fff", padding: "12px 24px", borderRadius: 6, textDecoration: "none", ...DM(13, 600, { letterSpacing: "1.5px", textTransform: "uppercase" }) }}>
+            Ver Colección <ArrowRight size={16} />
+          </Link>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 380px", gap: isMobile ? 24 : 40, alignItems: "start" }}>
+
+          {/* Lista productos */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {cart.map(product => (
+              <div key={product._id} style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 8, padding: isMobile ? 12 : 20, display: "flex", gap: isMobile ? 10 : 16, alignItems: isMobile ? "flex-start" : "center" }}>
+                <img src={product.image} alt={product.name} style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80, objectFit: "cover", borderRadius: 6, background: "#f0ede8", flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={BC(isMobile ? "14px" : "16px", { color: "#0f1f35", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>{product.name}</p>
+                  <p style={DM(11, 600, { color: "#8a9bb0", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 4px" })}>{product.categoria}</p>
+                  {product.talla && <p style={DM(12, 400, { color: "#8a9bb0", margin: 0 })}>Talla: {product.talla}</p>}
+                  {/* En móvil: controles + precio debajo del nombre */}
+                  {isMobile && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <button onClick={() => decrementProduct(product)}
+                          style={{ width: 36, height: 36, border: "1px solid #e5e0d8", background: "#fff", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                          <Minus size={13} color="#4a5568" />
+                        </button>
+                        <span style={DM(15, 600, { color: "#0f1f35", minWidth: 20, textAlign: "center" })}>{product.toSell}</span>
+                        <button onClick={() => incrementProduct(product)}
+                          style={{ width: 36, height: 36, border: "1px solid #e5e0d8", background: "#fff", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                          <Plus size={13} color="#4a5568" />
+                        </button>
+                      </div>
+                      <p style={BC("16px", { color: "#0f1f35", margin: 0 })}>${fmt(product.price * product.toSell)}</p>
+                      <button onClick={() => { removeProduct(product._id); toast.warn("Producto eliminado"); }}
+                        style={{ width: 36, height: 36, border: "1px solid #fca5a5", background: "transparent", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                        <Trash2 size={15} color="#e53e3e" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* En desktop: controles a la derecha */}
+                {!isMobile && (
+                  <>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <button onClick={() => decrementProduct(product)}
+                        style={{ width: 44, height: 44, border: "1px solid #e5e0d8", background: "#fff", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#f0ede8"}
+                        onMouseLeave={e => e.currentTarget.style.background = "#fff"}>
+                        <Minus size={14} color="#4a5568" />
+                      </button>
+                      <span style={DM(16, 600, { color: "#0f1f35", minWidth: 24, textAlign: "center" })}>{product.toSell}</span>
+                      <button onClick={() => incrementProduct(product)}
+                        style={{ width: 44, height: 44, border: "1px solid #e5e0d8", background: "#fff", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#f0ede8"}
+                        onMouseLeave={e => e.currentTarget.style.background = "#fff"}>
+                        <Plus size={14} color="#4a5568" />
+                      </button>
+                    </div>
+                    <p style={BC("18px", { color: "#0f1f35", margin: 0, minWidth: 80, textAlign: "right" })}>
+                      ${fmt(product.price * product.toSell)}
+                    </p>
+                    <button onClick={() => { removeProduct(product._id); toast.warn("Producto eliminado"); }}
+                      style={{ width: 44, height: 44, border: "1px solid #fca5a5", background: "transparent", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#fee2e2"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      <Trash2 size={16} color="#e53e3e" />
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Resumen */}
+          <div style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 8, padding: 28, position: isMobile ? "static" : "sticky", top: 24 }}>
+            <h2 style={BC("20px", { color: "#0f1f35", margin: "0 0 16px" })}>RESUMEN DEL PEDIDO</h2>
+            <div style={{ borderTop: "1px solid #e5e0d8", paddingTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={DM(13, 400, { color: "#8a9bb0" })}>Total de productos</span>
+                <span style={DM(13, 600, { color: "#0f1f35" })}>{getTotalProducts()}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={DM(13, 400, { color: "#8a9bb0" })}>Subtotal</span>
+                <span style={DM(13, 600, { color: "#0f1f35" })}>${fmt(subtotal)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={DM(13, 400, { color: "#8a9bb0" })}>IVA (16%)</span>
+                <span style={DM(13, 600, { color: "#0f1f35" })}>${fmt(iva)}</span>
+              </div>
+              <div style={{ borderTop: "1px solid #e5e0d8", paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={BC("16px", { color: "#0f1f35" })}>TOTAL</span>
+                <span style={BC("28px", { color: "#1d4b8a" })}>${fmt(total)}</span>
+              </div>
+            </div>
+
+            <button onClick={handleProcess}
+              style={{ width: "100%", background: "#0f1f35", color: "#fff", border: "none", borderRadius: 6, padding: 18, marginTop: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", ...DM(13, 600, { letterSpacing: "2px", textTransform: "uppercase" }) }}
+              onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
+              onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
+              <ShoppingBag size={16} /> PROCESAR COMPRA
+            </button>
+
+            <div style={{ textAlign: "center", marginTop: 14 }}>
+              <Link to="/getallproducts" style={{ display: "inline-flex", alignItems: "center", gap: 4, textDecoration: "none", ...DM(12, 400, { color: "#1d4b8a" }) }}>
+                Continuar comprando <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            <div style={{ marginTop: 20, borderTop: "1px solid #e5e0d8", paddingTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { icon: <Shield size={14} color="#8a9bb0" />, text: "Pago 100% seguro" },
+                { icon: <RotateCcw size={14} color="#8a9bb0" />, text: "Devoluciones en 30 días" },
+                { icon: <Truck size={14} color="#8a9bb0" />, text: "Envío express disponible" },
+              ].map((item, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {item.icon}
+                  <span style={DM(12, 400, { color: "#8a9bb0" })}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

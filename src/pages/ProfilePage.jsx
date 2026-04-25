@@ -1,422 +1,312 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { IoPersonCircle, IoMail, IoPerson, IoShield, IoCalendar, IoSave, IoLogOut, IoLockClosed, IoTrash, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
-import { updateProfileRequest, getUserStatsRequest, changePasswordRequest, deleteAccountRequest } from "../api/auth";
+import { useProducts } from "../context/ProductContext";
+import { IoPerson, IoMail, IoCalendar, IoSave, IoLockClosed, IoTrash, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
+import { useNavigate, Link } from "react-router-dom";
+import { updateProfileRequest, getUserStatsRequest, changePasswordRequest, deleteAccountRequest, getFavoritesRequest, removeFavoriteRequest } from "../api/auth";
 import { toast } from "react-toastify";
 import ConfirmModal from "../components/ConfirmModal";
 
+const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
+const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
+
+const TAB_STYLE = (active) => ({
+    ...DM(11, 500), letterSpacing: 1,
+    textTransform: 'uppercase', padding: '12px 20px', cursor: 'pointer',
+    background: 'none', border: 'none', borderBottom: active ? '2px solid #185FA5' : '2px solid transparent',
+    color: active ? '#042C53' : '#888', transition: 'all 0.2s ease'
+});
+
+const INPUT_STYLE = { width: '100%', ...DM(13, 400), color: '#111', background: '#f5f7fb', border: '0.5px solid #B5D4F4', borderRadius: 6, padding: '10px 14px', outline: 'none' };
+const LABEL_STYLE = { ...DM(10, 600), letterSpacing: 2, color: '#185FA5', textTransform: 'uppercase', display: 'block', marginBottom: 6 };
+const CARD_STYLE = { background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: 12, padding: 20 };
+
 function ProfilePage() {
-  const { user, isAdmin, logOut, setUser } = useAuth();
-  const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showConfirmPasswordChange, setShowConfirmPasswordChange] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
-  const [deletePassword, setDeletePassword] = useState("");
-  const [stats, setStats] = useState({
-    totalOrders: 0,
-    completedOrders: 0,
-    favoriteProducts: 0
-  });
-  const [formData, setFormData] = useState({
-    username: user?.username || "",
-    email: user?.email || "",
-  });
+    const { user, isAdmin, logOut, setUser } = useAuth();
+    const { addToCart, incProduct, cart } = useProducts();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+    const [activeTab, setActiveTab] = useState('perfil');
+    const [favorites, setFavorites] = useState([]);
+    const [loadingFavs, setLoadingFavs] = useState(false);
 
-  const loadStats = async () => {
-    try {
-      const response = await getUserStatsRequest();
-      setStats(response.data);
-    } catch (error) {
-      console.error("Error al cargar estadísticas:", error);
-    }
-  };
+    const [isEditing, setIsEditing] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showConfirmPasswordChange, setShowConfirmPasswordChange] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    const [deletePassword, setDeletePassword] = useState("");
+    const [stats, setStats] = useState({ totalOrders: 0, completedOrders: 0, favoriteProducts: 0 });
+    const [formData, setFormData] = useState({ username: user?.username || "", email: user?.email || "" });
 
-  const handleLogout = () => {
-    logOut();
-    navigate("/login");
-  };
+    useEffect(() => { loadStats(); }, []);
 
-  const handleSave = async () => {
-    try {
-      const response = await updateProfileRequest(formData);
-      setUser(response.data);
-      setIsEditing(false);
-      toast.success("Perfil actualizado correctamente");
-    } catch (error) {
-      console.error("Error al actualizar perfil:", error);
-      toast.error(error.response?.data?.message?.[0] || "Error al actualizar el perfil");
-    }
-  };
+    useEffect(() => {
+        if (activeTab === 'favoritos') loadFavorites();
+    }, [activeTab]);
 
-  const handleChangePassword = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("Las contraseñas no coinciden");
-      return;
-    }
+    const loadStats = async () => {
+        try { const r = await getUserStatsRequest(); setStats(r.data); } catch (e) { console.error(e); }
+    };
 
-    if (passwordData.newPassword.length < 6) {
-      toast.error("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
+    const loadFavorites = async () => {
+        setLoadingFavs(true);
+        try { const r = await getFavoritesRequest(); setFavorites(r.data); } catch (e) { console.error(e); }
+        finally { setLoadingFavs(false); }
+    };
 
-    // Mostrar modal de confirmación
-    setShowConfirmPasswordChange(true);
-  };
+    const handleRemoveFavorite = async (productId) => {
+        try {
+            await removeFavoriteRequest(productId);
+            setFavorites(prev => prev.filter(p => p._id !== productId));
+            toast.success("Quitado de favoritos");
+        } catch (e) { toast.error("Error al quitar favorito"); }
+    };
 
-  const confirmPasswordChange = async () => {
-    try {
-      await changePasswordRequest({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
-      });
-      toast.success("Contraseña actualizada correctamente");
-      setShowPasswordModal(false);
-      setShowConfirmPasswordChange(false);
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setShowCurrentPassword(false);
-      setShowNewPassword(false);
-      setShowConfirmPassword(false);
-    } catch (error) {
-      console.error("Error al cambiar contraseña:", error);
-      toast.error(error.response?.data?.message?.[0] || "Error al cambiar la contraseña");
-      setShowConfirmPasswordChange(false);
-    }
-  };
+    const handleAddToCart = (product) => {
+        const existing = cart.find(i => i._id === product._id);
+        if (!existing) { addToCart(product); toast.success("Agregado al carrito"); }
+        else if (existing.toSell < existing.quantity) { incProduct(product._id); toast.success("Agregado al carrito"); }
+        else toast.warn("Stock máximo: " + existing.quantity);
+    };
 
-  const handleDeleteAccount = async () => {
-    if (!deletePassword) {
-      toast.error("Debes ingresar tu contraseña");
-      return;
-    }
+    const handleSave = async () => {
+        try { const r = await updateProfileRequest(formData); setUser(r.data); setIsEditing(false); toast.success("Perfil actualizado"); }
+        catch (e) { toast.error(e.response?.data?.message?.[0] || "Error al actualizar"); }
+    };
 
-    try {
-      await deleteAccountRequest(deletePassword);
-      toast.success("Cuenta eliminada correctamente");
-      logOut();
-      navigate("/login");
-    } catch (error) {
-      console.error("Error al eliminar cuenta:", error);
-      toast.error(error.response?.data?.message?.[0] || "Error al eliminar la cuenta");
-    }
-  };
+    const handleChangePassword = async () => {
+        if (passwordData.newPassword !== passwordData.confirmPassword) { toast.error("Las contraseñas no coinciden"); return; }
+        if (passwordData.newPassword.length < 6) { toast.error("Mínimo 6 caracteres"); return; }
+        setShowConfirmPasswordChange(true);
+    };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Fecha no disponible";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-  };
+    const confirmPasswordChange = async () => {
+        try {
+            await changePasswordRequest({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword });
+            toast.success("Contraseña actualizada");
+            setShowPasswordModal(false); setShowConfirmPasswordChange(false);
+            setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        } catch (e) { toast.error(e.response?.data?.message?.[0] || "Error"); setShowConfirmPasswordChange(false); }
+    };
 
-  return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header del perfil */}
-        <div className="card-gradient rounded-2xl p-8 mb-8 shadow-2xl">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="relative">
-              <IoPersonCircle className="text-9xl text-blue-500" />
-              <div className={`absolute bottom-0 right-0 w-6 h-6 rounded-full border-4 border-slate-800 ${
-                isAdmin ? 'bg-purple-500' : 'bg-green-500'
-              }`}></div>
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-4xl font-bold gradient-text mb-2">
-                {user?.username || "Usuario"}
-              </h1>
-              <p className="text-gray-400 mb-4">{user?.email || "email@example.com"}</p>
-              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                {isAdmin && (
-                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 text-purple-300 rounded-full text-sm font-medium">
-                    <IoShield />
-                    Administrador
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-300 rounded-full text-sm font-medium">
-                  <IoPersonCircle />
-                  Usuario Activo
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2 font-semibold text-white"
-            >
-              <IoLogOut />
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
+    const handleDeleteAccount = async () => {
+        if (!deletePassword) { toast.error("Ingresa tu contraseña"); return; }
+        try { await deleteAccountRequest(deletePassword); toast.success("Cuenta eliminada"); logOut(); navigate("/login"); }
+        catch (e) { toast.error(e.response?.data?.message?.[0] || "Error"); }
+    };
 
-        {/* Información del perfil */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Información personal */}
-          <div className="glass-effect rounded-xl p-6 shadow-xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">Información Personal</h2>
-              {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Editar
-                </button>
-              ) : (
-                <button
-                  onClick={handleSave}
-                  className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
-                >
-                  <IoSave />
-                  Guardar
-                </button>
-              )}
-            </div>
+    const formatDate = (d) => {
+        if (!d) return "No disponible";
+        return new Date(d).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
 
-            <div className="space-y-4">
-              <div>
-                <label className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                  <IoPerson />
-                  Nombre de Usuario
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                ) : (
-                  <p className="text-white font-medium bg-slate-800/30 rounded-lg px-4 py-3">
-                    {user?.username || "No disponible"}
-                  </p>
-                )}
-              </div>
+    return (
+        <div className="w-full min-h-screen" style={{background: '#f5f7fb'}}>
+            <div className="w-full px-4 md:px-8 py-8" style={{maxWidth: 960, margin: '0 auto'}}>
 
-              <div>
-                <label className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                  <IoMail />
-                  Correo Electrónico
-                </label>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                ) : (
-                  <p className="text-white font-medium bg-slate-800/30 rounded-lg px-4 py-3">
-                    {user?.email || "No disponible"}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                  <IoCalendar />
-                  Fecha de Registro
-                </label>
-                <p className="text-white font-medium bg-slate-800/30 rounded-lg px-4 py-3">
-                  {formatDate(user?.createdAt)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Estadísticas */}
-          <div className="glass-effect rounded-xl p-6 shadow-xl">
-            <h2 className="text-2xl font-bold text-white mb-6">Estadísticas</h2>
-            <div className="space-y-4">
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <p className="text-gray-400 text-sm">Total de Pedidos</p>
-                <p className="text-3xl font-bold gradient-text">{stats.totalOrders}</p>
-              </div>
-              <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
-                <p className="text-gray-400 text-sm">Productos Favoritos</p>
-                <p className="text-3xl font-bold gradient-text">{stats.favoriteProducts}</p>
-              </div>
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                <p className="text-gray-400 text-sm">Compras Completadas</p>
-                <p className="text-3xl font-bold gradient-text">{stats.completedOrders}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Acciones adicionales */}
-        <div className="glass-effect rounded-xl p-6 mt-6 shadow-xl">
-          <h2 className="text-2xl font-bold text-white mb-4">Configuración de Cuenta</h2>
-          <div className="space-y-3">
-            <button 
-              onClick={() => setShowPasswordModal(true)}
-              className="w-full text-left px-4 py-3 bg-slate-800/30 hover:bg-slate-800/50 rounded-lg transition-colors text-gray-300 hover:text-white flex items-center gap-3"
-            >
-              <IoLockClosed size={20} />
-              Cambiar Contraseña
-            </button>
-            <button 
-              onClick={() => setShowDeleteModal(true)}
-              className="w-full text-left px-4 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors text-red-400 hover:text-red-300 flex items-center gap-3"
-            >
-              <IoTrash size={20} />
-              Eliminar Cuenta
-            </button>
-          </div>
-        </div>
-
-        {/* Modal para cambiar contraseña */}
-        {showPasswordModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full shadow-2xl">
-              <h3 className="text-2xl font-bold text-white mb-4">Cambiar Contraseña</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-gray-300 text-sm mb-2 block">Contraseña Actual</label>
-                  <div className="relative">
-                    <input
-                      type={showCurrentPassword ? "text" : "password"}
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                      className="w-full bg-slate-900/50 border border-white/10 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:border-blue-500"
-                      placeholder="Ingresa tu contraseña actual"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showCurrentPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
+                {/* Header */}
+                <div style={{...CARD_STYLE, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap'}}>
+                    <div style={{width: 56, height: 56, borderRadius: '50%', background: '#E6F1FB', border: '0.5px solid #B5D4F4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0}}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div style={{flex: 1}}>
+                        <p style={{...BC('16px'), color: '#042C53'}}>{user?.username || "Usuario"}</p>
+                        <p style={{...DM(12, 400), color: '#888'}}>{user?.email}</p>
+                        {isAdmin && <span style={{...DM(10, 600), letterSpacing: 1, color: '#185FA5', background: '#E6F1FB', border: '0.5px solid #B5D4F4', borderRadius: 4, padding: '3px 8px', marginTop: 4, display: 'inline-block'}}>ADMINISTRADOR</span>}
+                    </div>
+                    <button onClick={() => { logOut(); navigate('/login'); }} style={{...DM(10, 600), letterSpacing: 1, background: '#042C53', color: '#85B7EB', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6}}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#85B7EB" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        SALIR
                     </button>
-                  </div>
                 </div>
-                <div>
-                  <label className="text-gray-300 text-sm mb-2 block">Nueva Contraseña</label>
-                  <div className="relative">
-                    <input
-                      type={showNewPassword ? "text" : "password"}
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      className="w-full bg-slate-900/50 border border-white/10 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:border-blue-500"
-                      placeholder="Mínimo 6 caracteres"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showNewPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-gray-300 text-sm mb-2 block">Confirmar Nueva Contraseña</label>
-                  <div className="relative">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      className="w-full bg-slate-900/50 border border-white/10 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:border-blue-500"
-                      placeholder="Confirma tu nueva contraseña"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showConfirmPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowPasswordModal(false);
-                    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-                    setShowCurrentPassword(false);
-                    setShowNewPassword(false);
-                    setShowConfirmPassword(false);
-                  }}
-                  className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleChangePassword}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  Actualizar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Modal de confirmación para cambiar contraseña */}
-        <ConfirmModal
-          isOpen={showConfirmPasswordChange}
-          onClose={() => setShowConfirmPasswordChange(false)}
-          onConfirm={confirmPasswordChange}
-          title="Confirmar Cambio de Contraseña"
-          text="¿Estás seguro que deseas cambiar tu contraseña? Deberás usar la nueva contraseña en tu próximo inicio de sesión."
-          btnAccept="Sí, cambiar"
-          btnCancel="Cancelar"
-        />
+                {/* Pestañas */}
+                <div style={{background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: '8px 8px 0 0', display: 'flex', borderBottom: '0.5px solid #B5D4F4'}}>
+                    <button style={TAB_STYLE(activeTab === 'perfil')} onClick={() => setActiveTab('perfil')}>MI PERFIL</button>
+                    <button style={TAB_STYLE(activeTab === 'favoritos')} onClick={() => setActiveTab('favoritos')}>
+                        FAVORITOS
+                        {favorites.length > 0 && (
+                            <span style={{marginLeft: 6, background: '#042C53', color: '#85B7EB', fontSize: 9, borderRadius: 10, padding: '2px 6px', fontFamily: "'DM Sans', sans-serif"}}>
+                                {favorites.length}
+                            </span>
+                        )}
+                    </button>
+                    <button style={TAB_STYLE(activeTab === 'pedidos')} onClick={() => navigate('/orders')}>MIS PEDIDOS</button>
+                </div>
 
-        {/* Modal para eliminar cuenta */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full shadow-2xl">
-              <h3 className="text-2xl font-bold text-red-400 mb-4">Eliminar Cuenta</h3>
-              <p className="text-gray-300 mb-4">
-                Esta acción es <span className="text-red-400 font-bold">irreversible</span>. 
-                Se eliminarán todos tus datos, pedidos y favoritos.
-              </p>
-              <div>
-                <label className="text-gray-300 text-sm mb-2 block">Confirma tu contraseña</label>
-                <input
-                  type="password"
-                  value={deletePassword}
-                  onChange={(e) => setDeletePassword(e.target.value)}
-                  className="w-full bg-slate-900/50 border border-red-500/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500"
-                  placeholder="Ingresa tu contraseña"
-                />
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setDeletePassword("");
-                  }}
-                  className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleDeleteAccount}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                >
-                  Eliminar Cuenta
-                </button>
-              </div>
+                {/* Contenido pestañas */}
+                <div style={{background: '#fff', border: '0.5px solid #B5D4F4', borderTop: 'none', borderRadius: '0 0 8px 8px', padding: 24}}>
+
+                    {/* PESTAÑA MI PERFIL */}
+                    {activeTab === 'perfil' && (
+                        <div style={{display: 'flex', flexDirection: 'column', gap: 20}}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                {/* Info personal */}
+                                <div style={CARD_STYLE}>
+                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
+                                        <span style={{...DM(12, 500), color: '#042C53'}}>Información Personal</span>
+                                        {!isEditing
+                                            ? <button onClick={() => setIsEditing(true)} style={{...DM(11, 500), color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer'}}>Editar</button>
+                                            : <button onClick={handleSave} style={{...DM(11, 500), color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4}}>
+                                                <IoSave size={14} /> Guardar
+                                              </button>
+                                        }
+                                    </div>
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
+                                        <div>
+                                            <span style={LABEL_STYLE}>Nombre de usuario</span>
+                                            {isEditing
+                                                ? <input style={INPUT_STYLE} value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} />
+                                                : <p style={{...DM(13, 400), color: '#111', background: '#f5f7fb', borderRadius: 6, padding: '10px 14px'}}>{user?.username}</p>
+                                            }
+                                        </div>
+                                        <div>
+                                            <span style={LABEL_STYLE}>Correo electrónico</span>
+                                            {isEditing
+                                                ? <input style={INPUT_STYLE} type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                                                : <p style={{...DM(13, 400), color: '#111', background: '#f5f7fb', borderRadius: 6, padding: '10px 14px'}}>{user?.email}</p>
+                                            }
+                                        </div>
+                                        <div>
+                                            <span style={LABEL_STYLE}>Fecha de registro</span>
+                                            <p style={{...DM(13, 400), color: '#111', background: '#f5f7fb', borderRadius: 6, padding: '10px 14px'}}>{formatDate(user?.createdAt)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Estadísticas */}
+                                <div style={CARD_STYLE}>
+                                    <span style={{...DM(12, 500), color: '#042C53', display: 'block', marginBottom: 16}}>Estadísticas</span>
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+                                        {[
+                                            {label: 'Total de Pedidos', value: stats.totalOrders},
+                                            {label: 'Productos Favoritos', value: stats.favoriteProducts},
+                                            {label: 'Compras Completadas', value: stats.completedOrders},
+                                        ].map((s, i) => (
+                                            <div key={i} style={{background: '#f5f7fb', border: '0.5px solid #B5D4F4', borderRadius: 8, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                                <span style={{...DM(12, 400), color: '#555'}}>{s.label}</span>
+                                                <span style={{...BC('18px'), color: '#042C53'}}>{s.value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Configuración */}
+                            <div style={CARD_STYLE}>
+                                <span style={{...DM(12, 500), color: '#042C53', display: 'block', marginBottom: 14}}>Configuración de Cuenta</span>
+                                <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
+                                    <button onClick={() => setShowPasswordModal(true)} style={{...DM(12, 400), color: '#555', background: '#f5f7fb', border: '0.5px solid #B5D4F4', borderRadius: 6, padding: '10px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8}}>
+                                        <IoLockClosed size={14} color="#185FA5" /> Cambiar Contraseña
+                                    </button>
+                                    <button onClick={() => setShowDeleteModal(true)} style={{...DM(12, 400), color: '#A32D2D', background: 'rgba(163,45,45,0.05)', border: '0.5px solid #F7C1C1', borderRadius: 6, padding: '10px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8}}>
+                                        <IoTrash size={14} color="#A32D2D" /> Eliminar Cuenta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PESTAÑA FAVORITOS */}
+                    {activeTab === 'favoritos' && (
+                        <div>
+                            {loadingFavs ? (
+                                <div style={{textAlign: 'center', padding: 40}}>
+                                    <p style={{...DM(12, 400), color: '#888'}}>Cargando favoritos...</p>
+                                </div>
+                            ) : favorites.length === 0 ? (
+                                <div style={{textAlign: 'center', padding: '48px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16}}>
+                                    <div style={{width: 64, height: 64, borderRadius: '50%', background: '#E6F1FB', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                    </div>
+                                    <p style={{...DM(11, 400), color: '#888'}}>Explora productos y guárdalos aquí</p>
+                                    <Link to="/getallproducts" style={{...DM(10, 600), letterSpacing: 1, background: '#042C53', color: '#85B7EB', borderRadius: 4, padding: '9px 18px', textDecoration: 'none', textTransform: 'uppercase'}}>
+                                        VER TIENDA
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {favorites.map(product => (
+                                        <div key={product._id} style={{background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+                                            <div style={{height: 180, overflow: 'hidden'}}>
+                                                <img src={product.image} alt={product.name} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                                            </div>
+                                            <div style={{padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 4}}>
+                                                <p style={{...DM(10, 600), letterSpacing: 3, color: '#185FA5', textTransform: 'uppercase'}}>{product.categoria}</p>
+                                                <p style={{...DM(13, 500), color: '#111', lineHeight: 1.4}}>{product.name}</p>
+                                                <p style={{...BC('14px'), color: '#042C53'}}>${product.price?.toLocaleString('es-MX')}</p>
+                                            </div>
+                                            <button onClick={() => handleAddToCart(product)} style={{background: '#042C53', color: '#fff', ...DM(11, 600), letterSpacing: 2, textTransform: 'uppercase', border: 'none', padding: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'background 0.2s'}}
+                                                onMouseEnter={e => e.currentTarget.style.background='#185FA5'}
+                                                onMouseLeave={e => e.currentTarget.style.background='#042C53'}>
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                                                AGREGAR AL CARRITO
+                                            </button>
+                                            <button onClick={() => handleRemoveFavorite(product._id)} style={{background: 'transparent', color: '#A32D2D', ...DM(10, 600), letterSpacing: 1, textTransform: 'uppercase', border: 'none', borderTop: '0.5px solid #F7C1C1', padding: '9px', cursor: 'pointer'}}>
+                                                QUITAR DE FAVORITOS
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+
+            {/* Modal cambiar contraseña */}
+            {showPasswordModal && (
+                <div style={{position: 'fixed', inset: 0, background: 'rgba(4,44,83,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16}}>
+                    <div style={{background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 420, border: '0.5px solid #B5D4F4'}}>
+                        <p style={{...BC('16px'), color: '#042C53', marginBottom: 20}}>Cambiar Contraseña</p>
+                        <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
+                            {[
+                                {label: 'Contraseña Actual', key: 'currentPassword', show: showCurrentPassword, toggle: () => setShowCurrentPassword(!showCurrentPassword)},
+                                {label: 'Nueva Contraseña', key: 'newPassword', show: showNewPassword, toggle: () => setShowNewPassword(!showNewPassword)},
+                                {label: 'Confirmar Nueva Contraseña', key: 'confirmPassword', show: showConfirmPassword, toggle: () => setShowConfirmPassword(!showConfirmPassword)},
+                            ].map(f => (
+                                <div key={f.key}>
+                                    <span style={LABEL_STYLE}>{f.label}</span>
+                                    <div style={{position: 'relative'}}>
+                                        <input type={f.show ? 'text' : 'password'} value={passwordData[f.key]} onChange={e => setPasswordData({...passwordData, [f.key]: e.target.value})} style={{...INPUT_STYLE, paddingRight: 40}} />
+                                        <button type="button" onClick={f.toggle} style={{position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888'}}>
+                                            {f.show ? <IoEyeOffOutline size={16} /> : <IoEyeOutline size={16} />}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{display: 'flex', gap: 10, marginTop: 20}}>
+                            <button onClick={() => { setShowPasswordModal(false); setPasswordData({currentPassword:'',newPassword:'',confirmPassword:''}); }} style={{flex: 1, ...DM(11, 400), color: '#555', background: '#f5f7fb', border: '0.5px solid #B5D4F4', borderRadius: 6, padding: '10px', cursor: 'pointer'}}>Cancelar</button>
+                            <button onClick={handleChangePassword} style={{flex: 1, ...DM(11, 600), color: '#fff', background: '#185FA5', border: 'none', borderRadius: 6, padding: '10px', cursor: 'pointer'}}>Actualizar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <ConfirmModal isOpen={showConfirmPasswordChange} onClose={() => setShowConfirmPasswordChange(false)} onConfirm={confirmPasswordChange} title="Confirmar Cambio de Contraseña" text="¿Estás seguro que deseas cambiar tu contraseña?" btnAccept="Sí, cambiar" btnCancel="Cancelar" />
+
+            {/* Modal eliminar cuenta */}
+            {showDeleteModal && (
+                <div style={{position: 'fixed', inset: 0, background: 'rgba(4,44,83,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16}}>
+                    <div style={{background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 420, border: '0.5px solid #F7C1C1'}}>
+                        <p style={{...BC('16px'), color: '#A32D2D', marginBottom: 12}}>Eliminar Cuenta</p>
+                        <p style={{...DM(12, 400), color: '#555', marginBottom: 16}}>Esta acción es <strong style={{color: '#A32D2D'}}>irreversible</strong>. Se eliminarán todos tus datos, pedidos y favoritos.</p>
+                        <span style={LABEL_STYLE}>Confirma tu contraseña</span>
+                        <input type="password" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} style={{...INPUT_STYLE, borderColor: '#F7C1C1', marginBottom: 16}} placeholder="Ingresa tu contraseña" />
+                        <div style={{display: 'flex', gap: 10}}>
+                            <button onClick={() => { setShowDeleteModal(false); setDeletePassword(''); }} style={{flex: 1, ...DM(11, 400), color: '#555', background: '#f5f7fb', border: '0.5px solid #B5D4F4', borderRadius: 6, padding: '10px', cursor: 'pointer'}}>Cancelar</button>
+                            <button onClick={handleDeleteAccount} style={{flex: 1, ...DM(11, 600), color: '#fff', background: '#A32D2D', border: 'none', borderRadius: 6, padding: '10px', cursor: 'pointer'}}>Eliminar Cuenta</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default ProfilePage;

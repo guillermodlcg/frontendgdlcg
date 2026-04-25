@@ -32,3 +32,9 @@ export const changePasswordRequest = (data) => axios.put('/change-password', dat
 
 //Request para eliminar cuenta
 export const deleteAccountRequest = (password) => axios.delete('/delete-account', { data: { password } });
+
+//Request para obtener todos los usuarios (admin)
+export const getAllUsersRequest = () => axios.get('/admin/users');
+
+//Request para eliminar un usuario (admin)
+export const deleteUserRequest = (id) => axios.delete(`/admin/users/${id}`);

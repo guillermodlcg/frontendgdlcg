@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const CATEGORIAS = ['vestidos', 'blusas', 'pantalones', 'faldas', 'trajes', 'abrigos', 'accesorios'];
+const CATEGORIAS = ['tops', 'leggings', 'shorts', 'calzado', 'sudaderas', 'accesorios'];
 const TALLAS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const TALLAS_ACCESORIOS = ['Único', 'Pequeño', 'Mediano', 'Grande'];
 

@@ -1,5 +1,6 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router";
+import { useEffect } from "react";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import { AuthProvider } from "./context/AuthContext";
@@ -22,6 +23,15 @@ import OrdersPage from "./pages/OrdersPage";
 import IdValidator from "./context/IdValidator";
 import { ThemeProvider } from "./context/ThemeContext";
 
+import AboutPage from "./pages/AboutPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -29,11 +39,10 @@ function App() {
         <ProductsProvider>
           <OrdersProvider>
             <BrowserRouter>
-            <div className="flex flex-col min-h-screen">
-              <div className="container mx-auto px-4 md:px-10">
-                <Navbar />
-              </div>
-              <main className="flex-grow">
+            <ScrollToTop />
+            <div className="flex flex-col min-h-screen w-full">
+              <Navbar />
+              <main className="flex-grow w-full">
                 <ToastContainer
                   position="top-right"
                   autoClose={3000}
@@ -46,26 +55,19 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/getallproducts" element={<AllProductsPage />} />
+                  <Route path="/about" element={<AboutPage />} />
 
                   {/* Seccion de rutas protegidas */}
                   <Route element={<ProtectedRoute />}>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/products" element={<ProductsPage />} />
                     <Route path="/add-product" element={<ProductsFormPage />} />
-
-                    {/*Ruta con validacion de Id */}
-                    <Route
-                      path="/products/:id"
-                      element={
-                        <IdValidator>
-                          <ProductsFormPage />
-                        </IdValidator>
-                      }
-                    />
-                    <Route path="/getallproducts" element={<AllProductsPage />} />
+                    <Route path="/products/:id" element={<IdValidator><ProductsFormPage /></IdValidator>} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/sale" element={<SalesPage />} />
                     <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/users" element={<AdminUsersPage />} />
                   </Route>
                   {/*Ruta 404 para rutas no existentes */}
                   <Route path="*" element={<NotFound />} />

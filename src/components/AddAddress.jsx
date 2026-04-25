@@ -5,136 +5,90 @@ import { IoPersonOutline } from "react-icons/io5";
 import { FaRegAddressCard } from "react-icons/fa";
 import { MdPhoneIphone } from "react-icons/md";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
-import Tooltip from "@mui/material/Tooltip";
 import { useProducts } from "../context/ProductContext";
 import ConfirmModal from "./ConfirmModal";
 import React, { useState } from "react";
 
+const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
+const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
+
+const INPUT_STYLE = (hasError) => ({
+  width: "100%", paddingLeft: 36, paddingRight: 14, paddingTop: 10, paddingBottom: 10,
+  background: "#fafaf8", border: `1px solid ${hasError ? "#dc2626" : "#e5e0d8"}`,
+  borderRadius: 6, outline: "none", boxSizing: "border-box",
+  ...DM(13, 400, { color: "#0f1f35" }),
+});
+
 function AddAddress() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(addressSchema),
-  });
+  const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(addressSchema) });
   const { updateAddress, updateStepOrder } = useProducts();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const onSubmit = handleSubmit((values) => {
     updateAddress(values);
     updateStepOrder(4);
-  }); //Fin de onSubmit
+  });
 
-  //Funcion para inicializar un pedido
-  const reviewPayment = () => {
-    updateStepOrder(2);
-  };
+  const reviewPayment = () => { updateStepOrder(2); };
+
+  const fields = [
+    { name: "name",    label: "Nombre completo",    placeholder: "Nombre completo",       icon: <IoPersonOutline size={16} color="#8a9bb0" />,  error: errors.name },
+    { name: "address", label: "Dirección",           placeholder: "Calle, número, colonia", icon: <FaRegAddressCard size={16} color="#8a9bb0" />, error: errors.address },
+    { name: "phone",   label: "Teléfono",            placeholder: "Teléfono de contacto",  icon: <MdPhoneIphone size={16} color="#8a9bb0" />,    error: errors.phone },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <FaRegAddressCard size={28} />
-            Dirección de envío
-          </h1>
-        </div>
-        
-        <form onSubmit={onSubmit} className="p-6 space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Nombre completo
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500"
-                placeholder="Nombre completo"
-                {...register("name")}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-500 pointer-events-none">
-                <IoPersonOutline size={20} />
-              </div>
-            </div>
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-            )}
-          </div>
-          
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Dirección
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500"
-                placeholder="Calle, número, colonia"
-                {...register("address")}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-blue-500 pointer-events-none">
-                <FaRegAddressCard size={20} />
-              </div>
-            </div>
-            {errors.address && (
-              <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
-            )}
-          </div>
-          
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Teléfono
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500"
-                placeholder="Teléfono de contacto"
-                {...register("phone")}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-indigo-500 pointer-events-none">
-                <MdPhoneIphone size={20} />
-              </div>
-            </div>
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
-            )}
-          </div>
-        </form>
+    <div style={{ maxWidth: 560, margin: "0 auto" }}>
+      <div style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 14, overflow: "hidden", boxShadow: "0 4px 24px rgba(15,31,53,0.08)" }}>
 
-        <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 flex justify-between items-center gap-4">
-          <Tooltip title="Método de pago">
-            <button
-              className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all"
-              onClick={reviewPayment}
-              type="button"
-            >
-              <GrFormPreviousLink size={24} />
-              Método de pago
-            </button>
-          </Tooltip>
-
-          <Tooltip title="Finalizar pedido">
-            <button
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all transform hover:scale-105 shadow-lg"
-              onClick={() => setIsModalOpen(true)}
-              type="button"
-            >
-              Finalizar Pedido
-              <GrFormNextLink size={24} />
-            </button>
-          </Tooltip>
-          
-          <ConfirmModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={handleSubmit(onSubmit)}
-            title={"Confirmar Pedido"}
-            text={"¿Estás seguro que deseas confirmar este pedido? Esta acción no se puede deshacer"}
-            btnAccept={"Confirmar"}
-            btnCancel={"Cancelar"}
-          />
+        {/* Header */}
+        <div style={{ background: "#0f1f35", padding: "20px 28px", display: "flex", alignItems: "center", gap: 10 }}>
+          <FaRegAddressCard size={20} color="#7eb3e8" />
+          <span style={BC("22px", { color: "#fff" })}>DIRECCIÓN DE ENVÍO</span>
         </div>
+
+        {/* Campos */}
+        <div style={{ padding: "28px" }}>
+          {fields.map(field => (
+            <div key={field.name} style={{ marginBottom: 20 }}>
+              <label style={DM(10, 600, { textTransform: "uppercase", letterSpacing: "1.5px", color: "#8a9bb0", display: "block", marginBottom: 6 })}>
+                {field.label}
+              </label>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>{field.icon}</div>
+                <input type="text" placeholder={field.placeholder}
+                  style={INPUT_STYLE(field.error)}
+                  {...register(field.name)}
+                />
+              </div>
+              {field.error && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{field.error.message}</span>}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer botones */}
+        <div style={{ borderTop: "1px solid #e5e0d8", padding: "16px 28px", display: "flex", justifyContent: "space-between", background: "#fafaf8" }}>
+          <button type="button" onClick={reviewPayment}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", border: "1px solid #e5e0d8", borderRadius: 6, padding: "10px 20px", cursor: "pointer", ...DM(12, 600, { color: "#0f1f35" }) }}>
+            <GrFormPreviousLink size={18} /> Método de pago
+          </button>
+          <button type="button" onClick={() => setIsModalOpen(true)}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
+            onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
+            onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
+            Finalizar Pedido <GrFormNextLink size={18} />
+          </button>
+        </div>
+
+        <ConfirmModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleSubmit(onSubmit)}
+          title="Confirmar Pedido"
+          text="¿Estás seguro que deseas confirmar este pedido? Esta acción no se puede deshacer"
+          btnAccept="Confirmar"
+          btnCancel="Cancelar"
+        />
       </div>
     </div>
   );

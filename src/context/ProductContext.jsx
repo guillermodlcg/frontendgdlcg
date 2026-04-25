@@ -38,56 +38,58 @@ export function ProductsProvider({ children }) {
     }
   }; //Fin de getProducts
 
-  //Función para crear un producto
   const createProduct = async (product) => {
     try {
       await createProductRequest(product);
-      getProducts();
+      await getProducts();
+      return true;
     } catch (error) {
-      setErrors(error.response.data.message);
+      const msg = error.response?.data?.message || ['Error al crear producto'];
+      setErrors(msg);
     }
-  }; //Fin de createProduct
+  };
 
-  //Función para eliminar un producto
   const deleteProduct = async (id) => {
     try {
       await deleteProductRequest(id);
-      //console.log(res.data);
-      getProducts();
+      await getProducts();
     } catch (error) {
-      setErrors(error.response.data.message);
+      const msg = error.response?.data?.message || ['Error al eliminar producto'];
+      setErrors(msg);
     }
-  }; //Fin de deleteProduct
+  };
 
-  //Función para obtener un producto por Id
   const getProductById = async (id) => {
     try {
       const res = await getProductRequest(id);
       return res.data;
     } catch (error) {
-      setErrors(error.response.data.message);
+      const msg = error.response?.data?.message || ['Error al obtener producto'];
+      setErrors(msg);
     }
-  }; //Fin de getProductById
+  };
 
-  //Función para actualizar un producto SIN CAMBIAR LA IMAGEN
   const updateProductNoUpdateImage = async (id, product) => {
     try {
       const res = await updateProductRequestNoUpdateImage(id, product);
-      console.log(res);
+      await getProducts();
+      return res.data;
     } catch (error) {
-      setErrors(error.response.data.message);
+      const msg = error.response?.data?.message || ['Error al actualizar producto'];
+      setErrors(msg);
     }
-  }; //Fin de updateProductNoUpdateImage
+  };
 
-  //Función para actualizar un producto CON CAMBIO DE IMAGEN
   const updateProduct = async (id, product) => {
     try {
       const res = await updateProductRequest(id, product);
+      await getProducts();
       return res.data;
     } catch (error) {
-      setErrors(error.response.data.message);
+      const msg = error.response?.data?.message || ['Error al actualizar producto'];
+      setErrors(msg);
     }
-  }; //Fin de updateProduct
+  };
 
   //Use effect que vacia el arreglo de errores pasados 5 segundos
   useEffect(() => {

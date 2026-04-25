@@ -5,30 +5,28 @@ import { paymentSchema } from "../schemas/paymentSchema";
 import { IoCarOutline, IoPersonOutline } from "react-icons/io5";
 import { BsCalendar2Date } from "react-icons/bs";
 import { FaCcMastercard } from "react-icons/fa";
-import Tooltip from "@mui/material/Tooltip";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
 import { useAuth } from "../context/AuthContext";
 import React, { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 
+const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
+const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
+
+const INPUT_STYLE = (hasError) => ({
+  width: "100%", paddingLeft: 36, paddingRight: 14, paddingTop: 10, paddingBottom: 10,
+  background: "#fafaf8", border: `1px solid ${hasError ? "#dc2626" : "#e5e0d8"}`,
+  borderRadius: 6, outline: "none", boxSizing: "border-box",
+  ...DM(13, 400, { color: "#0f1f35" }),
+});
+
+const LABEL_STYLE = DM(10, 600, { textTransform: "uppercase", letterSpacing: "1.5px", color: "#8a9bb0", display: "block", marginBottom: 6 });
+const ICON_WRAP = { position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" };
+
 function AddPayment() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-    trigger,
-  } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm({
     resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      paymentMethod: "pickup",
-      cardNumber: "",
-      cardName: "",
-      expirationDate: "",
-      ccv: "",
-      userName: ""
-    }
+    defaultValues: { paymentMethod: "pickup", cardNumber: "", cardName: "", expirationDate: "", ccv: "", userName: "" },
   });
 
   const { updatePayment, updateStepOrder } = useProducts();
@@ -36,295 +34,159 @@ function AddPayment() {
   const [paymentType, setPaymenType] = useState("pickup");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  //Observar metodo de pago para detectar cambios
   const paymentMethod = watch("paymentMethod");
   const cardNumber = watch("cardNumber");
   const expirationDate = watch("expirationDate");
   const ccv = watch("ccv");
 
   const handlePaymentMethodChange = (method) => {
-    if (method === "card") {
-      setValue("paymentMethod", "card");
-      setPaymenType("card");
-    } else {
-      setValue("paymentMethod", "pickup");
-      setPaymenType("pickup");
-    }
-  }; //Fin de handlePaymentMethodChange
+    setValue("paymentMethod", method);
+    setPaymenType(method);
+  };
 
-  //Funcion para guardar los datos del pago al hacer click en el boton
   const onSubmit = (data) => {
     if (paymentType === "card") {
-      updatePayment({
-        paymentMethod,
-        cardDetails: {
-          cardName: data.cardName,
-          cardNumber: data.cardNumber,
-          expirationDate: data.expirationDate,
-          ccv: data.ccv,
-        },
-      });
+      updatePayment({ paymentMethod, cardDetails: { cardName: data.cardName, cardNumber: data.cardNumber, expirationDate: data.expirationDate, ccv: data.ccv } });
       updateStepOrder(3);
     } else {
-      updatePayment({
-        paymentMethod,
-        userName: data.userName,
-      });
+      updatePayment({ paymentMethod, userName: data.userName });
       updateStepOrder(4);
     }
-  }; //Fin de onSubmit
+  };
 
-  const reviewConfirm = () => {
-    updateStepOrder(1);
-  }; //Fin de reviewOrder
+  const reviewConfirm = () => { updateStepOrder(1); };
 
-  //Funcion para formato de la tarjeta quitando espacios y aceptando solamente digitos
   const formatCardNumber = (value) => {
     const digits = value.replace(/\D/g, "");
     const groups = digits.match(/.{1,4}/g);
     return groups ? groups.join(" ").slice(0, 19) : "";
-  }; //Fin de formatCardNumber
+  };
 
-  //Funcion para convertir la fecha en formato mm/yy
   const handleDateChange = (e) => {
     const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-    const formatted =
-      val.length >= 3 ? val.slice(0, 2) + "/" + val.slice(2) : val;
+    const formatted = val.length >= 3 ? val.slice(0, 2) + "/" + val.slice(2) : val;
     setValue("expirationDate", formatted);
     trigger("expirationDate");
-  }; //Fin de handleDateChange
+  };
 
-  //Funcion para controlar el cambio de numero de tarjeta y validarlo
-  //Ademas de usar la funcion formatCardNumber para separar
-  //los caracteres en grupos de 4
   const handleCardNumberChange = (e) => {
-    const inputValue = e.target.value;
-
-    const formatted = formatCardNumber(inputValue);
+    const formatted = formatCardNumber(e.target.value);
     setValue("cardNumber", formatted);
-
-    const cleanValue = formatted.replace(/\s/g, "");
-    setValue("cardNumberClean", cleanValue);
+    setValue("cardNumberClean", formatted.replace(/\s/g, ""));
     trigger("cardNumber");
-  }; //Fin de handleCardNumberChange
+  };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            Método de pago
-          </h1>
-        </div>
-        
-        <div className="p-6 space-y-6">
-          {/* Radio Buttons */}
-          <div className="flex justify-center gap-12 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-xl">
-            <div className="flex items-center gap-4">
-              <input
-                id="pickup"
-                type="radio"
-                value="pickup"
-                {...register("paymentMethod")}
-                checked={paymentMethod === "pickup"}
-                onClick={() => handlePaymentMethodChange("pickup")}
-                className="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer"
-              />
-              <label htmlFor="pickup" className="text-gray-900 dark:text-white font-medium cursor-pointer select-none">
-                Recoger en tienda
-              </label>
-            </div>
+    <div style={{ maxWidth: 560, margin: "0 auto" }}>
+      <div style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 14, overflow: "hidden", boxShadow: "0 4px 24px rgba(15,31,53,0.08)" }}>
 
-            <div className="flex items-center gap-4">
-              <input
-                id="card"
-                type="radio"
-                value="card"
-                {...register("paymentMethod")}
-                onClick={() => handlePaymentMethodChange("card")}
-                className="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer"
-              />
-              <label htmlFor="card" className="text-gray-900 dark:text-white font-medium cursor-pointer select-none">
-                Pago con tarjeta
-              </label>
-            </div>
+        {/* Header */}
+        <div style={{ background: "#0f1f35", padding: "20px 28px" }}>
+          <span style={BC("22px", { color: "#fff" })}>MÉTODO DE PAGO</span>
+        </div>
+
+        <div style={{ padding: "28px" }}>
+
+          {/* Selector de método */}
+          <div style={{ display: "flex", gap: 12, marginBottom: 28 }}>
+            {[{ value: "pickup", label: "Recoger en tienda" }, { value: "card", label: "Pago con tarjeta" }].map(opt => (
+              <button key={opt.value} type="button" onClick={() => handlePaymentMethodChange(opt.value)}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
+                  border: paymentType === opt.value ? "1.5px solid #0f1f35" : "1px solid #e5e0d8",
+                  background: paymentType === opt.value ? "#0f1f35" : "#fafaf8",
+                  ...DM(13, 600, { color: paymentType === opt.value ? "#fff" : "#4a5568" }),
+                }}>
+                {opt.label}
+              </button>
+            ))}
           </div>
 
-          {/* Formulario para datos de la tarjeta */}
+          {/* Tarjeta */}
           {paymentType === "card" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">
-                Datos de la tarjeta
-              </h2>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* Numero de tarjeta */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <p style={BC("16px", { color: "#0f1f35", margin: "0 0 4px", borderBottom: "1px solid #e5e0d8", paddingBottom: 10 })}>DATOS DE LA TARJETA</p>
+
+              <div>
+                <label style={LABEL_STYLE}>Número de tarjeta</label>
+                <div style={{ position: "relative" }}>
+                  <div style={ICON_WRAP}><IoCarOutline size={16} color="#8a9bb0" /></div>
+                  <input type="text" placeholder="1234 5678 9012 3456" style={INPUT_STYLE(errors?.cardNumber)}
+                    {...register("cardNumber")} onChange={handleCardNumberChange} value={cardNumber} />
+                </div>
+                {errors?.cardNumber && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.cardNumber.message}</span>}
+              </div>
+
+              <div>
+                <label style={LABEL_STYLE}>Nombre en la tarjeta</label>
+                <div style={{ position: "relative" }}>
+                  <div style={ICON_WRAP}><IoPersonOutline size={16} color="#8a9bb0" /></div>
+                  <input type="text" placeholder="Juan Pérez" style={INPUT_STYLE(errors?.cardName)} {...register("cardName")} />
+                </div>
+                {errors?.cardName && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.cardName.message}</span>}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
-                  <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Número de tarjeta
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      {...register("cardNumber")}
-                      className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500"
-                      placeholder="1234 5678 9012 3456"
-                      onChange={handleCardNumberChange}
-                      value={cardNumber}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-indigo-500 pointer-events-none">
-                      <IoCarOutline size={20} />
-                    </div>
+                  <label style={LABEL_STYLE}>Fecha (mm/aa)</label>
+                  <div style={{ position: "relative" }}>
+                    <div style={ICON_WRAP}><BsCalendar2Date size={16} color="#8a9bb0" /></div>
+                    <input type="text" placeholder="mm/aa" maxLength={5} style={INPUT_STYLE(errors?.expirationDate)}
+                      value={expirationDate} {...register("expirationDate")} onChange={handleDateChange} onBlur={() => trigger("expirationDate")} />
                   </div>
-                  {errors?.cardNumber && (
-                    <p className="text-red-500 text-sm mt-1">{errors.cardNumber.message}</p>
-                  )}
+                  {errors?.expirationDate && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.expirationDate.message}</span>}
                 </div>
-
-                {/* Nombre en la tarjeta */}
                 <div>
-                  <label htmlFor="cardName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Nombre en la tarjeta
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      {...register("cardName")}
-                      className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Juan Pérez"
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-green-500 pointer-events-none">
-                      <IoPersonOutline size={20} />
-                    </div>
+                  <label style={LABEL_STYLE}>CCV</label>
+                  <div style={{ position: "relative" }}>
+                    <div style={ICON_WRAP}><FaCcMastercard size={16} color="#8a9bb0" /></div>
+                    <input type="text" maxLength={3} placeholder="123" style={INPUT_STYLE(errors?.ccv)}
+                      value={ccv} {...register("ccv")} onChange={(e) => { const val = e.target.value.replace(/\D/g, "").slice(0, 3); setValue("ccv", val); trigger("ccv"); }} />
                   </div>
-                  {errors?.cardName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.cardName.message}</p>
-                  )}
+                  {errors?.ccv && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.ccv.message}</span>}
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Fecha de expiracion */}
-                  <div>
-                    <label htmlFor="expirationDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Fecha (mm/aa)
-                    </label>
-                    <div className="relative">
-                      <input
-                        value={expirationDate}
-                        type="text"
-                        {...register("expirationDate")}
-                        className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500"
-                        placeholder="mm/aa"
-                        onChange={handleDateChange}
-                        onBlur={() => trigger("expirationDate")}
-                        maxLength={5}
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-blue-500 pointer-events-none">
-                        <BsCalendar2Date size={20} />
-                      </div>
-                    </div>
-                    {errors?.expirationDate && (
-                      <p className="text-red-500 text-sm mt-1">{errors.expirationDate.message}</p>
-                    )}
-                  </div>
-
-                  {/* CCV de la tarjeta */}
-                  <div>
-                    <label htmlFor="ccv" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      CCV
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        maxLength={3}
-                        {...register("ccv")}
-                        className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500"
-                        placeholder="123"
-                        value={ccv}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "").slice(0, 3);
-                          setValue("ccv", val);
-                          trigger("ccv");
-                        }}
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-orange-500 pointer-events-none">
-                        <FaCcMastercard size={20} />
-                      </div>
-                    </div>
-                    {errors?.ccv && (
-                      <p className="text-red-500 text-sm mt-1">{errors.ccv.message}</p>
-                    )}
-                  </div>
-                </div>
-              </form>
+              </div>
             </div>
           )}
 
-          {/* Formulario para recoger en tienda */}
+          {/* Pickup */}
           {paymentType === "pickup" && (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label htmlFor="userName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nombre del cliente
-                </label>
-                <div className="relative">
-                  <input
-                    value={user.username}
-                    type="text"
-                    {...register("userName")}
-                    className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Nombre del cliente"
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-green-500 pointer-events-none">
-                    <IoPersonOutline size={20} />
-                  </div>
-                </div>
-                {errors?.userName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.userName.message}</p>
-                )}
+            <div>
+              <label style={LABEL_STYLE}>Nombre del cliente</label>
+              <div style={{ position: "relative" }}>
+                <div style={ICON_WRAP}><IoPersonOutline size={16} color="#8a9bb0" /></div>
+                <input type="text" value={user.username} placeholder="Nombre del cliente"
+                  style={INPUT_STYLE(errors?.userName)} {...register("userName")} />
               </div>
-            </form>
+              {errors?.userName && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.userName.message}</span>}
+            </div>
           )}
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 flex justify-between items-center gap-4">
-          <Tooltip title="Revisar Orden">
-            <button
-              className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all"
-              onClick={reviewConfirm}
-              type="button"
-            >
-              <GrFormPreviousLink size={24} />
-              Revisar Orden
-            </button>
-          </Tooltip>
-          
-          <Tooltip title={paymentType === "pickup" ? "Finalizar pedido" : "Agregar dirección"}>
-            <button
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
-              type="button"
-              onClick={() => {
-                if (paymentType === "pickup") {
-                  setIsModalOpen(true);
-                } else {
-                  handleSubmit(onSubmit)();
-                }
-              }}
-            >
-              {paymentType === "pickup" ? "Finalizar pedido" : "Agregar dirección"}
-              <GrFormNextLink size={24} />
-            </button>
-          </Tooltip>
-          
-          <ConfirmModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={handleSubmit(onSubmit)}
-            title={"Confirmar Pedido"}
-            text={"¿Estás seguro que deseas confirmar este pedido? Esta acción no se puede deshacer"}
-            btnAccept={"Confirmar"}
-            btnCancel={"Cancelar"}
-          />
+        {/* Footer botones */}
+        <div style={{ borderTop: "1px solid #e5e0d8", padding: "16px 28px", display: "flex", justifyContent: "space-between", background: "#fafaf8" }}>
+          <button type="button" onClick={reviewConfirm}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", border: "1px solid #e5e0d8", borderRadius: 6, padding: "10px 20px", cursor: "pointer", ...DM(12, 600, { color: "#0f1f35" }) }}>
+            <GrFormPreviousLink size={18} /> Revisar Orden
+          </button>
+          <button type="button"
+            onClick={() => { if (paymentType === "pickup") { setIsModalOpen(true); } else { handleSubmit(onSubmit)(); } }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
+            onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
+            onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
+            {paymentType === "pickup" ? "Finalizar pedido" : "Agregar dirección"} <GrFormNextLink size={18} />
+          </button>
         </div>
+
+        <ConfirmModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleSubmit(onSubmit)}
+          title="Confirmar Pedido"
+          text="¿Estás seguro que deseas confirmar este pedido? Esta acción no se puede deshacer"
+          btnAccept="Confirmar"
+          btnCancel="Cancelar"
+        />
       </div>
     </div>
   );

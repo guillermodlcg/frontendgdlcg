@@ -1,70 +1,48 @@
 import React from "react";
-import { IoWarning } from "react-icons/io5";
+import { AlertTriangle } from "lucide-react";
 
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, text, btnCancel, btnAccept }) =>{
+const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
+const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
+
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, text, btnCancel, btnAccept }) => {
     if (!isOpen) return null;
 
-    return(
-       <div className="fixed inset-0 z-50 overflow-y-auto">
-        {/* Fondo oscuro */}
-        <div className=" fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-             onClose={onClose}
-        ></div>
-         {/* Contenedor del modal */}
+    return (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+            {/* Overlay */}
+            <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,31,53,0.5)" }} />
 
-         <div className="flex min-h-screen items-center justify-center p-4 text-center">
-            <div className="relative w-[20vw] min-w-[280] max-w-[400px]
-            transform-overflow-hidden rounded-xl bg-white text-left
-                            shadow-2xl transition-all duration-300 ease-out">
+            {/* Modal */}
+            <div style={{ position: "relative", width: "100%", maxWidth: 420, background: "#fff", borderRadius: 14, boxShadow: "0 20px 60px rgba(15,31,53,0.2)", border: "1px solid #e5e0d8", overflow: "hidden" }}>
 
-                {/* Contenido del modal */}
-                <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                 {/*Icono de advertencias*/}
-                 <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center
-                                 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <IoWarning className="h-6 w-6 text-yellow-600 " size={30}/>
-                 </div>
-
-                 {/* Texto modal */}
-                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">
-                        {title}
-                    </h3>
-                    <div className="mt-2">
-                        <p className="text-sm text-gray-500">
-                          {title}
-                        </p>
+                {/* Header */}
+                <div style={{ padding: "24px 24px 0", display: "flex", gap: 16, alignItems: "flex-start" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <AlertTriangle size={22} color="#854d0e" />
                     </div>
-                 </div>
-                </div>
+                    <div style={{ flex: 1 }}>
+                        <h3 style={BC("22px", { color: "#0f1f35", margin: "0 0 6px" })}>{title}</h3>
+                        <p style={DM("13px", 400, { color: "#4a5568", lineHeight: 1.6, margin: 0 })}>{text}</p>
+                    </div>
                 </div>
 
-                {/* Botones del modal */}
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                    <button
-                    type="button"
-                    onClick={onConfirm}
-                    className="inline-flex w-full justify-center rounded-md bg-green-600
-                               px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500
-                               sm:ml-3 sm:w-auto"
-                    >
-                     {btnAccept}
+                {/* Botones */}
+                <div style={{ display: "flex", gap: 10, padding: "20px 24px", justifyContent: "flex-end", borderTop: "1px solid #e5e0d8", marginTop: 20, background: "#fafaf8" }}>
+                    <button type="button" onClick={onClose}
+                        style={{ padding: "10px 20px", background: "#fff", border: "1px solid #e5e0d8", borderRadius: 6, cursor: "pointer", transition: "background 0.15s", ...DM("13px", 600, { color: "#4a5568" }) }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#f5f4f1"}
+                        onMouseLeave={e => e.currentTarget.style.background = "#fff"}>
+                        {btnCancel}
                     </button>
-                    <button
-                    type="button"
-                    onClick={onClose}
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-red-600
-                               py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset
-                               ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                    >
-                    {btnCancel}
+                    <button type="button" onClick={onConfirm}
+                        style={{ padding: "10px 20px", background: "#0f1f35", border: "none", borderRadius: 6, cursor: "pointer", transition: "background 0.15s", ...DM("13px", 600, { color: "#fff" }) }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
+                        onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
+                        {btnAccept}
                     </button>
-
                 </div>
-         </div>
+            </div>
         </div>
-       </div>
     );
 };
 

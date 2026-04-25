@@ -18,12 +18,9 @@ export const deleteProductRequest = (id) => axios.delete('/products/' + id);
 
 //Llamada al api para editar un producto y cambiar la imagen
 export const updateProductRequest = (id, product) =>
-    axios.put('/products/updatewithimage' + id, product, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    }
-    );
+    axios.put('/products/updatewithimage/' + id, product, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
 
 //Llamada al api para editar un producto sin cambiar la imagen
 export const updateProductRequestNoUpdateImage = (id, product) => axios.put('/products/' + id, product);

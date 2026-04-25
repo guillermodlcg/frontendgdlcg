@@ -28,33 +28,25 @@ export const AuthProvider = ({ children }) => {
     const signUp = async (user) => {
         try {
             const res = await registerRequest(user);
-            //console.log(res.data);
             setUser(res.data);
             setIsAuthenticated(true);
-            setIsAdmin(false); //al registrarse es un usuario regular
+            setIsAdmin(false);
         } catch (error) {
-            //console.error(error);
-            //Si guiamos un error al registrar el usuario
-            //Guardamos el error en la variable error
-            setErrors(error.response.data.message);
+            setErrors(error.response?.data?.message || ['Error al registrar']);
         }
-    };//Fin de signup
+    };
 
     const signIn = async (user) => {
         try {
             const res = await loginRequest(user);
-            //console.log(res);
-            if (res.data.role === ROLE_ADMIN)
-                setIsAdmin(true);
-
+            if (res.data.role === ROLE_ADMIN) setIsAdmin(true);
             setUser(res.data);
             setIsAuthenticated(true);
-            setLoading(false)
+            setLoading(false);
         } catch (error) {
-            //console.log(error.response.data.message);
-            setErrors(error.response.data.message);
+            setErrors(error.response?.data?.message || ['Error al iniciar sesión']);
         }
-    };//Fin de signIn
+    };
 
     //Use effect que vacía el arreglo de errores pasados 5 segundos 
     useEffect(() => {
