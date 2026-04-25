@@ -98,7 +98,7 @@ function RegisterPage() {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 4 }}>
-                        <ReCAPTCHA sitekey="6LecBSwsAAAAAFQBXUtBTwpmOI8phCK604vlKEwU" onChange={(v) => setCaptchaValue(v)} theme="light" />
+                        <ReCAPTCHA sitekey="6LfET8osAAAAAFjAc9WYM9kjsnHYZmtYFWxjpzmC" onChange={(v) => setCaptchaValue(v)} theme="light" />
                     </div>
 
                     <Tooltip title={captchaValue ? "Registrar" : "Completa el reCAPTCHA"}>
