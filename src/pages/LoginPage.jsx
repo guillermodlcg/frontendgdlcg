@@ -96,7 +96,7 @@ function LoginPage() {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <ReCaptcha sitekey="6LfET8osAAAAAFjAc9WYM9kjsnHYZmtYFWxjpzmC" onChange={(v) => setCaptchaValue(v)} theme="light" />
+                        <ReCaptcha sitekey="6LdzUcosAAAAAJ0z0yv1ySWsEjuLyOyXmSpIC7St" onChange={(v) => setCaptchaValue(v)} theme="light" />
                     </div>
 
                     <Tooltip title={captchaValue ? "Iniciar sesión" : "Completa el reCAPTCHA"}>
