@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from "../api/auth";
-import { ShoppingCart, Heart, X, PanelLeftClose, PanelLeftOpen, ChevronUp, ChevronDown, AlertTriangle, Check, PackageSearch, SlidersHorizontal, ShoppingCartOff } from "lucide-react";
+import { ShoppingCart, Heart, X, PanelLeftClose, PanelLeftOpen, ChevronUp, ChevronDown, AlertTriangle, Check, PackageSearch, SlidersHorizontal } from "lucide-react";
 
 const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
 const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
@@ -113,7 +113,7 @@ function ProductCard({ product }) {
       ) : product.quantity === 0 ? (
         <button disabled
           style={{ margin: "0 16px 14px", background: "#9ca3af", color: "#fff", border: "none", borderRadius: 4, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "not-allowed", opacity: 0.6, ...DM(12, 600, { letterSpacing: "1.5px", textTransform: "uppercase" }) }}>
-          <ShoppingCartOff size={14} strokeWidth={1.5} /> AGOTADO
+          <ShoppingCart size={14} strokeWidth={1.5} /> AGOTADO
         </button>
       ) : (
         <button onClick={handleAdd} style={{ margin: "0 16px 14px", background: added ? "#15803d" : "#0f1f35", color: "#fff", border: "none", borderRadius: 4, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", transition: "background 0.2s", ...DM(12, 600, { letterSpacing: "1.5px", textTransform: "uppercase" }) }}
