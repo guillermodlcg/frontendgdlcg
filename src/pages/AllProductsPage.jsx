@@ -43,6 +43,9 @@ function ProductCard({ product }) {
   const [isFav, setIsFav] = useState(false);
   const [added, setAdded] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [selectedTalla, setSelectedTalla] = useState(null);
+  const [tallaError, setTallaError] = useState(false);
+  const needsTalla = product.tallas?.length > 0;
 
   useEffect(() => {
     if (isAuthenticated && !isAdmin) {
@@ -61,8 +64,14 @@ function ProductCard({ product }) {
 
   const handleAdd = () => {
     if (!isAuthenticated) { localStorage.setItem("pendingCartProduct", JSON.stringify(product)); navigate("/login"); return; }
-    const existing = cart.find(i => i._id === product._id);
-    if (!existing) { addToCart(product); }
+    if (needsTalla && !selectedTalla) {
+      setTallaError(true);
+      setTimeout(() => setTallaError(false), 2500);
+      return;
+    }
+    const productWithTalla = { ...product, talla: selectedTalla };
+    const existing = cart.find(i => i._id === product._id && i.talla === selectedTalla);
+    if (!existing) { addToCart(productWithTalla); }
     else if (existing.toSell < existing.quantity) { incProduct(product._id); }
     else { toast.warn("Stock máximo: " + existing.quantity); return; }
     toast.success("Agregado al carrito");
@@ -103,10 +112,28 @@ function ProductCard({ product }) {
         <p style={DM(11, 400, { color: "#8a9bb0", margin: 0 })}>Stock: {product.quantity}</p>
         {product.tallas?.length > 0 && (
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {product.tallas.slice(0, 4).map(t => (
-              <span key={t} style={{ border: "1px solid #e5e0d8", borderRadius: 3, padding: "2px 6px", ...DM(10, 400, { color: "#4a5568" }) }}>{t}</span>
-            ))}
+            {product.tallas.map(t => {
+              const isSelected = selectedTalla === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setSelectedTalla(t); setTallaError(false); }}
+                  style={{
+                    border: isSelected ? "1.5px solid #0f1f35" : tallaError ? "1px solid #dc2626" : "1px solid #e5e0d8",
+                    borderRadius: 3, padding: "2px 7px", cursor: "pointer",
+                    background: isSelected ? "#0f1f35" : "#fff",
+                    ...DM(10, isSelected ? 600 : 400, { color: isSelected ? "#fff" : "#4a5568" }),
+                    transition: "all 0.15s"
+                  }}>
+                  {t}
+                </button>
+              );
+            })}
           </div>
+        )}
+        {tallaError && (
+          <p style={DM(10, 600, { color: "#dc2626", margin: 0 })}>Selecciona una talla</p>
         )}
       </div>
       {/* Botones admin o usuario */}

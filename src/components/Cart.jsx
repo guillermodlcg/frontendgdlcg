@@ -17,7 +17,18 @@ function Cart() {
     return () => window.removeEventListener("resize", h);
   }, []);
 
-  const handleProcess = () => { updateStepOrder(1); navigate("/sale"); };
+  const handleProcess = () => {
+    // Validate no out-of-stock items before checkout
+    const outOfStock = cart.filter(p => p.quantity === 0);
+    if (outOfStock.length > 0) {
+      outOfStock.forEach(p => {
+        toast.error(`"${p.name}" ya no está disponible. Elimínalo del carrito para continuar.`);
+      });
+      return;
+    }
+    updateStepOrder(1);
+    navigate("/sale");
+  };
 
   const incrementProduct = (product) => {
     const existing = cart.find(i => i._id === product._id);
@@ -66,12 +77,15 @@ function Cart() {
           {/* Lista productos */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {cart.map(product => (
-              <div key={product._id} style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 8, padding: isMobile ? 12 : 20, display: "flex", gap: isMobile ? 10 : 16, alignItems: isMobile ? "flex-start" : "center" }}>
-                <img src={product.image} alt={product.name} style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80, objectFit: "cover", borderRadius: 6, background: "#f0ede8", flexShrink: 0 }} />
+              <div key={product._id} style={{ background: product.quantity === 0 ? "#fff5f5" : "#fff", border: `1px solid ${product.quantity === 0 ? "#fca5a5" : "#e5e0d8"}`, borderRadius: 8, padding: isMobile ? 12 : 20, display: "flex", gap: isMobile ? 10 : 16, alignItems: isMobile ? "flex-start" : "center" }}>
+                <img src={product.image} alt={product.name} style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80, objectFit: "cover", borderRadius: 6, background: "#f0ede8", flexShrink: 0, opacity: product.quantity === 0 ? 0.5 : 1 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={BC(isMobile ? "14px" : "16px", { color: "#0f1f35", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>{product.name}</p>
                   <p style={DM(11, 600, { color: "#8a9bb0", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 4px" })}>{product.categoria}</p>
                   {product.talla && <p style={DM(12, 400, { color: "#8a9bb0", margin: 0 })}>Talla: {product.talla}</p>}
+                  {product.quantity === 0 && (
+                    <p style={DM(11, 600, { color: "#dc2626", margin: "4px 0 0" })}>Producto agotado — elimínalo para continuar</p>
+                  )}
                   {/* En móvil: controles + precio debajo del nombre */}
                   {isMobile && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
