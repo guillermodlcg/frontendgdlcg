@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { addFavoriteRequest, removeFavoriteRequest, getFavoritesRequest } from "../api/auth";
-import { ShoppingCart, Heart, X, PanelLeftClose, PanelLeftOpen, ChevronUp, ChevronDown, AlertTriangle, Check, PackageSearch, SlidersHorizontal } from "lucide-react";
+import { ShoppingCart, Heart, X, PanelLeftClose, PanelLeftOpen, ChevronUp, ChevronDown, AlertTriangle, Check, PackageSearch, SlidersHorizontal, ShoppingCartOff } from "lucide-react";
 
 const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
 const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
@@ -110,11 +110,16 @@ function ProductCard({ product }) {
           <button onClick={() => deleteProduct(product._id)} style={{ flex: 1, background: "rgba(239,68,68,0.08)", border: "0.5px solid rgba(239,68,68,0.25)", borderRadius: 4, padding: "8px", cursor: "pointer", ...DM(11, 600, { color: "#e53e3e", textTransform: "uppercase", letterSpacing: "1px" }) }}>Eliminar</button>
           <Link to={`/products/${product._id}`} style={{ flex: 2, background: "#f0f5fb", border: "0.5px solid #B5D4F4", borderRadius: 4, padding: "8px", textDecoration: "none", textAlign: "center", ...DM(11, 600, { color: "#0f1f35", textTransform: "uppercase", letterSpacing: "1px" }) }}>Editar</Link>
         </div>
+      ) : product.quantity === 0 ? (
+        <button disabled
+          style={{ margin: "0 16px 14px", background: "#9ca3af", color: "#fff", border: "none", borderRadius: 4, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "not-allowed", opacity: 0.6, ...DM(12, 600, { letterSpacing: "1.5px", textTransform: "uppercase" }) }}>
+          <ShoppingCartOff size={14} strokeWidth={1.5} /> AGOTADO
+        </button>
       ) : (
         <button onClick={handleAdd} style={{ margin: "0 16px 14px", background: added ? "#15803d" : "#0f1f35", color: "#fff", border: "none", borderRadius: 4, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", transition: "background 0.2s", ...DM(12, 600, { letterSpacing: "1.5px", textTransform: "uppercase" }) }}
           onMouseEnter={e => { if (!added) e.currentTarget.style.background = "#1d4b8a"; }}
           onMouseLeave={e => { if (!added) e.currentTarget.style.background = "#0f1f35"; }}>
-          {added ? <><Check size={14} /> AGREGADO</> : <><ShoppingCart size={14} /> AGREGAR</>}
+          {added ? <><Check size={14} strokeWidth={1.5} /> AGREGADO</> : <><ShoppingCart size={14} strokeWidth={1.5} /> AGREGAR</>}
         </button>
       )}
     </div>

@@ -3,7 +3,8 @@ import uploadIcon from '../assets/addphoto.svg';
 import React, { useState, useRef, useEffect } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IoBagAdd, IoCloseSharp, IoBagCheck, IoAddCircle, IoTrash } from 'react-icons/io5';
+import { IoBagCheck, IoAddCircle, IoTrash } from 'react-icons/io5';
+import { Upload, Loader, CheckCircle, XCircle, X, Plus } from 'lucide-react';
 import { productSchema } from '../schemas/createProductSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
@@ -41,7 +42,14 @@ function ProductsFormPage() {
     const [updateImage, setUpdateImage] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [colores, setColores] = useState(['']);
-    const [submitHovered, setSubmitHovered] = useState(false);
+    const [uploadState, setUploadState] = useState('idle'); // 'idle' | 'uploading' | 'success' | 'error'
+
+    const BASE_BTN = {
+        padding: '11px 24px', borderRadius: 6, border: 'none',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        width: '100%', transition: 'all 0.2s ease',
+        ...DM(12, 600, { textTransform: 'uppercase', letterSpacing: '1.5px' })
+    };
 
     const selectedCategoria = watch('categoria');
     const selectedTallas = watch('tallas');
@@ -116,6 +124,8 @@ function ProductsFormPage() {
     };
 
     const onSubmit = handleSubmit(async (data) => {
+        if (uploadState === 'uploading') return;
+
         const formData = new FormData();
         formData.append("name", data.name);
         formData.append("price", data.price);
@@ -125,38 +135,47 @@ function ProductsFormPage() {
         formData.append("tallas", JSON.stringify(data.tallas));
         formData.append("colores", JSON.stringify(data.colores));
 
-        const imageFiles = selectedImages.filter(img => img.file);
-
         if (selectedImages.length === 0) {
             toast.error(isUpdating ? "No se ha seleccionado una imagen para actualizar" : "No se ha seleccionado una imagen");
             return;
         }
 
-        if (params.id) {
-            if (!updateImage) {
-                const updateData = {
-                    name: data.name, price: parseFloat(data.price),
-                    quantity: parseInt(data.quantity), image: getValues('image'),
-                    description: data.description, categoria: data.categoria,
-                    tallas: data.tallas, colores: data.colores,
-                };
-                await updateProductNoUpdateImage(params.id, updateData);
+        setUploadState('uploading');
+
+        try {
+            if (params.id) {
+                if (!updateImage) {
+                    const updateData = {
+                        name: data.name, price: parseFloat(data.price),
+                        quantity: parseInt(data.quantity), image: getValues('image'),
+                        description: data.description, categoria: data.categoria,
+                        tallas: data.tallas, colores: data.colores,
+                    };
+                    await updateProductNoUpdateImage(params.id, updateData);
+                } else {
+                    selectedImages.forEach(img => {
+                        if (img.file) formData.append('images', img.file);
+                        else formData.append('existingImages', img.url);
+                    });
+                    await updateProduct(params.id, formData);
+                }
             } else {
                 selectedImages.forEach(img => {
                     if (img.file) formData.append('images', img.file);
                     else formData.append('existingImages', img.url);
                 });
-                await updateProduct(params.id, formData);
+                await createProduct(formData);
             }
-        } else {
-            selectedImages.forEach(img => {
-                if (img.file) formData.append('images', img.file);
-                else formData.append('existingImages', img.url);
-            });
-            await createProduct(formData);
-        }
 
-        navigate('/products');
+            setUploadState('success');
+            setTimeout(() => {
+                setUploadState('idle');
+                navigate('/products');
+            }, 1500);
+        } catch (err) {
+            setUploadState('error');
+            setTimeout(() => setUploadState('idle'), 3000);
+        }
     });
 
     return (
@@ -174,6 +193,12 @@ function ProductsFormPage() {
                 ))}
 
                 <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div style={{
+                    pointerEvents: uploadState === 'uploading' ? 'none' : 'auto',
+                    opacity: uploadState === 'uploading' ? 0.65 : 1,
+                    transition: 'opacity 0.2s ease',
+                    display: 'flex', flexDirection: 'column', gap: 20
+                  }}>
 
                     {/* Nombre */}
                     <div>
@@ -274,14 +299,14 @@ function ProductsFormPage() {
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />
                                     <button type="button" onClick={() => handleRemoveImage(index)}
-                                        style={{ position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: '50%', background: '#0f1f35', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}>
-                                        ✕
+                                        style={{ position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: '50%', background: '#0f1f35', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <X size={12} color="#fff" strokeWidth={2.5} />
                                     </button>
                                 </div>
                             ))}
                             <div onClick={() => inputImage.current.click()}
                                 style={{ height: 120, borderRadius: 8, border: '2px dashed #e5e0d8', background: '#fafaf8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: 6 }}>
-                                <span style={{ fontSize: 24, color: '#8a9bb0' }}>+</span>
+                                <Plus size={20} color="#8a9bb0" strokeWidth={1.5} />
                                 <span style={DM(11, 600, { color: '#8a9bb0', textAlign: 'center' })}>Agregar imagen</span>
                             </div>
                         </div>
@@ -302,20 +327,44 @@ function ProductsFormPage() {
                     </div>
 
                     {/* Botones */}
-                    <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                        <button type="submit"
-                            onMouseEnter={() => setSubmitHovered(true)}
-                            onMouseLeave={() => setSubmitHovered(false)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: submitHovered ? '#1d4b8a' : '#0f1f35', color: '#fff', border: 'none', borderRadius: 6, padding: '11px 24px', cursor: 'pointer', transition: 'background 0.15s', ...DM(12, 600, { textTransform: 'uppercase', letterSpacing: '1.5px' }) }}>
-                            {isUpdating ? <IoBagCheck size={18} /> : <IoBagAdd size={18} />}
-                            {isUpdating ? 'Actualizar' : 'Agregar'}
-                        </button>
+                    </div>{/* end blocking div */}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+                        {uploadState === 'idle' && (
+                            <button type="submit"
+                                style={{ ...BASE_BTN, background: '#0f1f35', color: '#fff', cursor: 'pointer' }}
+                                onMouseEnter={e => e.currentTarget.style.background = '#1d4b8a'}
+                                onMouseLeave={e => e.currentTarget.style.background = '#0f1f35'}>
+                                <Upload size={18} strokeWidth={1.5} />
+                                {isUpdating ? 'Actualizar Producto' : 'Subir Producto'}
+                            </button>
+                        )}
+                        {uploadState === 'uploading' && (
+                            <button type="button" disabled
+                                style={{ ...BASE_BTN, background: '#1a3a6b', color: '#fff', cursor: 'not-allowed', opacity: 0.85 }}>
+                                <Loader size={18} strokeWidth={1.5} className="spin-icon" />
+                                Subiendo producto...
+                            </button>
+                        )}
+                        {uploadState === 'success' && (
+                            <button type="button" disabled
+                                style={{ ...BASE_BTN, background: '#16a34a', color: '#fff', cursor: 'default', animation: 'fadeInScale 0.3s ease' }}>
+                                <CheckCircle size={18} strokeWidth={1.5} />
+                                Producto subido exitosamente
+                            </button>
+                        )}
+                        {uploadState === 'error' && (
+                            <button type="button" disabled
+                                style={{ ...BASE_BTN, background: '#dc2626', color: '#fff', cursor: 'default', animation: 'fadeInScale 0.3s ease' }}>
+                                <XCircle size={18} strokeWidth={1.5} />
+                                Error — Intenta de nuevo
+                            </button>
+                        )}
                         <button type="button" onClick={() => navigate('/products')}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #e5e0d8', background: '#fafaf8', color: '#0f1f35', borderRadius: 6, padding: '11px 24px', cursor: 'pointer', ...DM(12, 600, { textTransform: 'uppercase', letterSpacing: '1.5px' }) }}>
-                            <IoCloseSharp size={18} /> Cancelar
+                            style={{ ...BASE_BTN, border: '1px solid #e5e0d8', background: '#fafaf8', color: '#0f1f35', cursor: 'pointer' }}>
+                            <X size={18} strokeWidth={1.5} /> Cancelar
                         </button>
                     </div>
-
                 </form>
             </div>
         </div>
