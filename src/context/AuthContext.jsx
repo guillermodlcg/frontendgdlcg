@@ -31,6 +31,9 @@ export const AuthProvider = ({ children }) => {
             setUser(res.data);
             setIsAuthenticated(true);
             setIsAdmin(false);
+            // Guardar token en localStorage para móvil
+            const cookies = Cookies.get();
+            if (cookies.token) localStorage.setItem('token', cookies.token);
         } catch (error) {
             setErrors(error.response?.data?.message || ['Error al registrar']);
         }
@@ -43,6 +46,9 @@ export const AuthProvider = ({ children }) => {
             setUser(res.data);
             setIsAuthenticated(true);
             setLoading(false);
+            // Guardar token en localStorage para móvil
+            const cookies = Cookies.get();
+            if (cookies.token) localStorage.setItem('token', cookies.token);
         } catch (error) {
             setErrors(error.response?.data?.message || ['Error al iniciar sesión']);
         }
@@ -106,6 +112,7 @@ export const AuthProvider = ({ children }) => {
     const logOut= ()=>{
     logoutRequest();
     Cookies.remove('token');
+    localStorage.removeItem('token');
     setIsAuthenticated(false);
     setIsAdmin(false);
     setUser(null);
