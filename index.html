@@ -15,14 +15,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>
-      eruda.init();
-      // Force Eruda above all app overlays (navbar drawer z-index is 200)
-      setTimeout(function() {
-        var erudaEl = document.getElementById('eruda');
-        if (erudaEl) erudaEl.style.zIndex = '99999';
-      }, 500);
-    </script>
   </body>
 </html>

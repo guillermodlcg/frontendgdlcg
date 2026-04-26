@@ -60,7 +60,6 @@ export const AuthProvider = ({ children }) => {
             const cookieToken = Cookies.get('token');
             const bodyToken = res.data?.token;
             const token = cookieToken || bodyToken;
-            console.log('[AUTH] signUp token source — cookie:', !!cookieToken, 'body:', !!bodyToken);
             if (token) updateToken(token);
             safeStorage.setItem('gdlcg_user', JSON.stringify(res.data));
             setUser(res.data);
@@ -78,11 +77,7 @@ export const AuthProvider = ({ children }) => {
             const cookieToken = Cookies.get('token');
             const bodyToken = res.data?.token;
             const token = cookieToken || bodyToken;
-            console.log('[AUTH] signIn token source — cookie:', !!cookieToken, 'body:', !!bodyToken);
-            console.log('[AUTH] Token received:', !!token);
             if (token) updateToken(token);
-            console.log('[AUTH] setAxiosToken called');
-            console.log('[AUTH] safeStorage readback:', !!safeStorage.getItem('gdlcg_token'));
             safeStorage.setItem('gdlcg_user', JSON.stringify(res.data));
             if (res.data.role === ROLE_ADMIN) setIsAdmin(true);
             setUser(res.data);
