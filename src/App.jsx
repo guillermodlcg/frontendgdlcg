@@ -9,7 +9,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductsFormPage from "./pages/ProductsFormPage";
 import ProtectedRoute from "./ProtectedRoute";
-import AdminRoute from "./components/AdminRoute";
+import AdminRoute from "./api/AdminRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { ProductsProvider } from "./context/ProductContext";
