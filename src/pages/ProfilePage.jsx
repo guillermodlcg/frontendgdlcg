@@ -22,6 +22,114 @@ const INPUT_STYLE = { width: '100%', ...DM(13, 400), color: '#111', background: 
 const LABEL_STYLE = { ...DM(10, 600), letterSpacing: 2, color: '#185FA5', textTransform: 'uppercase', display: 'block', marginBottom: 6 };
 const CARD_STYLE = { background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: 12, padding: 20 };
 
+// Separate component so each card has its own talla state
+function FavoriteCard({ product, onRemove, onAddToCart }) {
+    const needsTalla = product.tallas?.length > 0;
+    const [selectedTalla, setSelectedTalla] = useState(null);
+    const [tallaError, setTallaError] = useState(false);
+    const outOfStock = product.quantity === 0;
+
+    const handleAdd = () => {
+        if (outOfStock) return;
+        if (needsTalla && !selectedTalla) {
+            setTallaError(true);
+            setTimeout(() => setTallaError(false), 2500);
+            return;
+        }
+        onAddToCart({ ...product, talla: selectedTalla });
+    };
+
+    return (
+        <div style={{background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+            <div style={{height: 180, overflow: 'hidden', position: 'relative'}}>
+                <img src={product.image} alt={product.name}
+                    style={{width: '100%', height: '100%', objectFit: 'cover', opacity: outOfStock ? 0.5 : 1}} />
+                {outOfStock && (
+                    <span style={{
+                        position: 'absolute', top: 8, left: 8,
+                        background: '#fee2e2', color: '#991b1b',
+                        padding: '2px 8px', borderRadius: 4,
+                        ...DM(9, 600, { textTransform: 'uppercase', letterSpacing: '1px' })
+                    }}>AGOTADO</span>
+                )}
+            </div>
+
+            <div style={{padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 4}}>
+                <p style={{...DM(10, 600), letterSpacing: 3, color: '#185FA5', textTransform: 'uppercase'}}>{product.categoria}</p>
+                <p style={{...DM(13, 500), color: '#111', lineHeight: 1.4}}>{product.name}</p>
+                <p style={{...BC('14px'), color: '#042C53'}}>${product.price?.toLocaleString('es-MX')}</p>
+
+                {/* Talla selector */}
+                {needsTalla && !outOfStock && (
+                    <div style={{marginTop: 4}}>
+                        <p style={{...DM(9, 600), color: tallaError ? '#dc2626' : '#8a9bb0', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4}}>
+                            {tallaError ? 'Selecciona una talla' : 'Talla'}
+                        </p>
+                        <div style={{display: 'flex', flexWrap: 'wrap', gap: 4}}>
+                            {product.tallas.map(t => {
+                                const isSelected = selectedTalla === t;
+                                return (
+                                    <button key={t} type="button"
+                                        onClick={() => { setSelectedTalla(t); setTallaError(false); }}
+                                        style={{
+                                            border: isSelected ? '1.5px solid #042C53' : tallaError ? '1px solid #dc2626' : '1px solid #B5D4F4',
+                                            borderRadius: 3, padding: '2px 7px', cursor: 'pointer',
+                                            background: isSelected ? '#042C53' : '#fff',
+                                            ...DM(10, isSelected ? 600 : 400, { color: isSelected ? '#fff' : '#4a5568' }),
+                                            transition: 'all 0.15s'
+                                        }}>
+                                        {t}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Add to cart button */}
+            {outOfStock ? (
+                <div style={{
+                    background: '#f3f4f6', color: '#9ca3af',
+                    ...DM(11, 600), letterSpacing: 2, textTransform: 'uppercase',
+                    border: 'none', padding: '11px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7
+                }}>
+                    AGOTADO
+                </div>
+            ) : (
+                <button
+                    onClick={handleAdd}
+                    disabled={needsTalla && !selectedTalla}
+                    style={{
+                        background: (needsTalla && !selectedTalla) ? '#8a9bb0' : '#042C53',
+                        color: '#fff', ...DM(11, 600), letterSpacing: 2,
+                        textTransform: 'uppercase', border: 'none', padding: '11px',
+                        cursor: (needsTalla && !selectedTalla) ? 'not-allowed' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        gap: 7, transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={e => { if (!(needsTalla && !selectedTalla)) e.currentTarget.style.background = '#185FA5'; }}
+                    onMouseLeave={e => { if (!(needsTalla && !selectedTalla)) e.currentTarget.style.background = '#042C53'; }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                    {needsTalla && !selectedTalla ? 'ELIGE UNA TALLA' : 'AGREGAR AL CARRITO'}
+                </button>
+            )}
+
+            <button onClick={() => onRemove(product._id)}
+                style={{background: 'transparent', color: '#A32D2D', ...DM(10, 600), letterSpacing: 1,
+                    textTransform: 'uppercase', border: 'none', borderTop: '0.5px solid #F7C1C1',
+                    padding: '9px', cursor: 'pointer'}}>
+                QUITAR DE FAVORITOS
+            </button>
+        </div>
+    );
+}
+
 function ProfilePage() {
     const { user, isAdmin, logOut, setUser } = useAuth();
     const { addToCart, incProduct, cart } = useProducts();
@@ -68,14 +176,19 @@ function ProfilePage() {
     };
 
     const handleAddToCart = (product) => {
-        if (product.quantity === 0) {
-            toast.error(`"${product.name}" está agotado.`);
-            return;
-        }
-        const existing = cart.find(i => i._id === product._id);
-        if (!existing) { addToCart(product); toast.success("Agregado al carrito"); }
-        else if (existing.toSell < existing.quantity) { incProduct(product._id); toast.success("Agregado al carrito"); }
-        else toast.warn("Stock máximo: " + existing.quantity);
+        if (product.quantity === 0) return;
+        const existing = cart.find(i => i._id === product._id && i.talla === product.talla);
+        if (!existing) { addToCart(product); }
+        else if (existing.toSell < existing.quantity) { incProduct(product._id); }
+        else { toast.warn('Stock máximo: ' + existing.quantity); return; }
+        toast.success(
+            <span>
+                Agregado al carrito  
+                <Link to="/cart" style={{color: '#85B7EB', fontWeight: 600, textDecoration: 'underline'}}>
+                    Ver carrito
+                </Link>
+            </span>
+        );
     };
 
     const handleSave = async () => {
@@ -236,36 +349,12 @@ function ProfilePage() {
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {favorites.map(product => (
-                                        <div key={product._id} style={{background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
-                                            <div style={{height: 180, overflow: 'hidden'}}>
-                                                <img src={product.image} alt={product.name} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
-                                            </div>
-                                            <div style={{padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 4}}>
-                                                <p style={{...DM(10, 600), letterSpacing: 3, color: '#185FA5', textTransform: 'uppercase'}}>{product.categoria}</p>
-                                                <p style={{...DM(13, 500), color: '#111', lineHeight: 1.4}}>{product.name}</p>
-                                                <p style={{...BC('14px'), color: '#042C53'}}>${product.price?.toLocaleString('es-MX')}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => handleAddToCart(product)}
-                                                disabled={product.quantity === 0}
-                                                style={{
-                                                    background: product.quantity === 0 ? '#9ca3af' : '#042C53',
-                                                    color: '#fff', ...DM(11, 600), letterSpacing: 2,
-                                                    textTransform: 'uppercase', border: 'none', padding: '11px',
-                                                    cursor: product.quantity === 0 ? 'not-allowed' : 'pointer',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    gap: 7, transition: 'background 0.2s',
-                                                    opacity: product.quantity === 0 ? 0.6 : 1
-                                                }}
-                                                onMouseEnter={e => { if (product.quantity > 0) e.currentTarget.style.background = '#185FA5'; }}
-                                                onMouseLeave={e => { if (product.quantity > 0) e.currentTarget.style.background = '#042C53'; }}>
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                                                {product.quantity === 0 ? 'AGOTADO' : 'AGREGAR AL CARRITO'}
-                                            </button>
-                                            <button onClick={() => handleRemoveFavorite(product._id)} style={{background: 'transparent', color: '#A32D2D', ...DM(10, 600), letterSpacing: 1, textTransform: 'uppercase', border: 'none', borderTop: '0.5px solid #F7C1C1', padding: '9px', cursor: 'pointer'}}>
-                                                QUITAR DE FAVORITOS
-                                            </button>
-                                        </div>
+                                        <FavoriteCard
+                                            key={product._id}
+                                            product={product}
+                                            onRemove={handleRemoveFavorite}
+                                            onAddToCart={handleAddToCart}
+                                        />
                                     ))}
                                 </div>
                             )}
