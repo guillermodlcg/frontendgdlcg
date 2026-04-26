@@ -191,7 +191,7 @@ function AllProductsPage() {
   return (
     <div style={{ background: "#fafaf8", minHeight: "100vh" }}>
       {/* Header */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #e5e0d8", padding: "32px 64px" }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #e5e0d8", padding: isMobile ? "24px 16px" : "32px 64px" }}>
         <p style={DM(11, 400, { color: "#8a9bb0", marginBottom: 8 })}>
           <Link to="/" style={{ color: "#8a9bb0", textDecoration: "none" }}>Inicio</Link> / Productos
         </p>

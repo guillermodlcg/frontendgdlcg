@@ -14,7 +14,8 @@ const TAB_STYLE = (active) => ({
     ...DM(11, 500), letterSpacing: 1,
     textTransform: 'uppercase', padding: '12px 20px', cursor: 'pointer',
     background: 'none', border: 'none', borderBottom: active ? '2px solid #185FA5' : '2px solid transparent',
-    color: active ? '#042C53' : '#888', transition: 'all 0.2s ease'
+    color: active ? '#042C53' : '#888', transition: 'all 0.2s ease',
+    flexShrink: 0, whiteSpace: 'nowrap'
 });
 
 const INPUT_STYLE = { width: '100%', ...DM(13, 400), color: '#111', background: '#f5f7fb', border: '0.5px solid #B5D4F4', borderRadius: 6, padding: '10px 14px', outline: 'none' };
@@ -125,7 +126,7 @@ function ProfilePage() {
                 </div>
 
                 {/* Pestañas */}
-                <div style={{background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: '8px 8px 0 0', display: 'flex', borderBottom: '0.5px solid #B5D4F4'}}>
+                <div style={{background: '#fff', border: '0.5px solid #B5D4F4', borderRadius: '8px 8px 0 0', display: 'flex', borderBottom: '0.5px solid #B5D4F4', overflowX: 'auto', WebkitOverflowScrolling: 'touch'}}>
                     <button style={TAB_STYLE(activeTab === 'perfil')} onClick={() => setActiveTab('perfil')}>MI PERFIL</button>
                     <button style={TAB_STYLE(activeTab === 'favoritos')} onClick={() => setActiveTab('favoritos')}>
                         FAVORITOS

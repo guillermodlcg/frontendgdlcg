@@ -14,11 +14,20 @@
   --border: #B5D4F4;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-html, body, #root {
+html, body {
   width: 100%;
+  max-width: 100vw;
   min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
   overflow-x: hidden;
 }
 
@@ -28,6 +37,26 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   font-weight: 400;
+}
+
+/* Fix iOS input zoom (prevents auto-zoom on focus) */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Fix iOS tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fix iOS momentum scrolling */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix iOS flex issues */
+.flex {
+  min-width: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {

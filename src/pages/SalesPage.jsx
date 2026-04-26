@@ -76,12 +76,12 @@ function SalesPage() {
   }, [stepOrder]);
 
   return (
-    <div style={{ background: "#fafaf8", minHeight: "100vh", padding: "40px 24px", boxSizing: "border-box" }}>
+    <div style={{ background: "#fafaf8", minHeight: "100vh", padding: "40px 16px", boxSizing: "border-box" }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
 
         {/* Stepper */}
-        <div style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 14, padding: "28px 40px", marginBottom: 32, boxShadow: "0 2px 12px rgba(15,31,53,0.06)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 14, padding: "20px 16px", marginBottom: 32, boxShadow: "0 2px 12px rgba(15,31,53,0.06)", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minWidth: 280 }}>
             {steps.map((step, index) => (
               <div key={index} style={{ display: "flex", alignItems: "center", flex: 1 }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
@@ -90,11 +90,12 @@ function SalesPage() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     background: stepOrder >= index + 1 ? "#0f1f35" : "#f5f4f1",
                     border: stepOrder >= index + 1 ? "none" : "1px solid #e5e0d8",
+                    flexShrink: 0,
                     ...BC("14px", { color: stepOrder >= index + 1 ? "#fff" : "#8a9bb0" }),
                   }}>
                     {index + 1}
                   </div>
-                  <span style={DM(11, stepOrder >= index + 1 ? 600 : 400, {
+                  <span style={DM(10, stepOrder >= index + 1 ? 600 : 400, {
                     color: stepOrder >= index + 1 ? "#0f1f35" : "#8a9bb0",
                     textAlign: "center", whiteSpace: "nowrap",
                   })}>
@@ -102,7 +103,7 @@ function SalesPage() {
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div style={{ flex: 1, height: 1, background: stepOrder > index + 1 ? "#0f1f35" : "#e5e0d8", margin: "0 8px", marginBottom: 28 }} />
+                  <div style={{ flex: 1, height: 1, background: stepOrder > index + 1 ? "#0f1f35" : "#e5e0d8", margin: "0 4px", marginBottom: 28 }} />
                 )}
               </div>
             ))}

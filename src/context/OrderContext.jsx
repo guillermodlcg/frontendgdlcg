@@ -9,6 +9,7 @@ import {
     deleteOrderRequest
 } from '../api/orders';
 import { toast } from 'react-toastify';
+import { safeStorage } from '../utils/safeStorage';
 
 
 const OrderContext = createContext();
@@ -25,12 +26,18 @@ export const useOrders = () => {
 //;;//Fin de useOrders
 
 export function OrdersProvider ({ children }){
-    const { isAdmin } = useAuth();
+    const { isAdmin, tokenRef } = useAuth();
     const [orders, setOrders] = useState( [ ] );
     const [errors, setErrors] = useState( [ ] );
 
 //Función para obtener todas las ordenes de la base de datos
 const getOrders = async () => {
+    // iOS Safari safety: ensure token is available before fetching
+    const token = tokenRef?.current || safeStorage.getItem('gdlcg_token');
+    if (!token) {
+        console.warn('getOrders: no token available, skipping fetch');
+        return;
+    }
     console.log("getOrders llamado, isAdmin:", isAdmin);
     try {
         let res;

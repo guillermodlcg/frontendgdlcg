@@ -20,7 +20,11 @@ function UserOrdersPage() {
   const [activeTab, setActiveTab] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  useEffect(() => { getOrders?.(); }, []);
+  useEffect(() => {
+    // iOS Safari: defer slightly to ensure token is available in storage
+    const t = setTimeout(() => { getOrders?.(); }, 50);
+    return () => clearTimeout(t);
+  }, []);
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", h);

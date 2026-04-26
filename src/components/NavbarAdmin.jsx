@@ -87,7 +87,7 @@ function NavbarAdmin() {
 
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "#fff", borderBottom: "1px solid #e5e0d8" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 48px", height: "64px", maxWidth: "100%" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: isMobile ? "0 16px" : "0 48px", height: "64px", maxWidth: "100%", boxSizing: "border-box" }}>
 
         {/* Zona izquierda */}
         <div style={{ display: "flex", alignItems: "center" }}>
