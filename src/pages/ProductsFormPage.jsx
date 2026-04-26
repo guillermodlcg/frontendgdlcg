@@ -8,6 +8,7 @@ import { Upload, Loader, CheckCircle, XCircle, X, Plus } from 'lucide-react';
 import { productSchema } from '../schemas/createProductSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
+import axiosInstance from '../api/axiosInstance';
 
 const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
 const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
@@ -36,6 +37,7 @@ function ProductsFormPage() {
 
     const [selectedImages, setSelectedImages] = useState([]);
     const inputImage = useRef(null);
+    const idempotencyKey = useRef(`${Date.now()}-${Math.random().toString(36).slice(2)}`);
     const { createProduct, getProducts, getProductById, updateProductNoUpdateImage, updateProduct, errors: productErrors } = useProducts();
     const navigate = useNavigate();
     const params = useParams();
@@ -164,10 +166,15 @@ function ProductsFormPage() {
                     if (img.file) formData.append('images', img.file);
                     else formData.append('existingImages', img.url);
                 });
-                await createProduct(formData);
+                await axiosInstance.post('/products', formData, {
+                    headers: { 'x-idempotency-key': idempotencyKey.current }
+                });
+                await getProducts();
             }
 
             setUploadState('success');
+            // Reset key so a new form submission gets a fresh key
+            idempotencyKey.current = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
             setTimeout(() => {
                 setUploadState('idle');
                 navigate('/products');

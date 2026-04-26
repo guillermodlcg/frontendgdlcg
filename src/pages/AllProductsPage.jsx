@@ -84,10 +84,15 @@ function ProductCard({ product }) {
             <Heart size={14} fill={isFav ? "#1d4b8a" : "none"} color={isFav ? "#1d4b8a" : "#8a9bb0"} />
           </button>
         )}
-        {/* Badge últimas unidades */}
-        {product.quantity < 10 && (
+        {/* Badge stock */}
+        {product.quantity === 0 && (
+          <span style={{ position: "absolute", bottom: 10, left: 10, background: "#fee2e2", color: "#991b1b", padding: "3px 8px", borderRadius: 4, display: "flex", alignItems: "center", gap: 4, ...DM(9, 600, { textTransform: "uppercase", letterSpacing: "1px" }) }}>
+            AGOTADO
+          </span>
+        )}
+        {product.quantity > 0 && product.quantity <= 5 && (
           <span style={{ position: "absolute", bottom: 10, left: 10, background: "#fef9c3", color: "#854d0e", padding: "3px 8px", borderRadius: 4, display: "flex", alignItems: "center", gap: 4, ...DM(9, 600, { textTransform: "uppercase", letterSpacing: "1px" }) }}>
-            <AlertTriangle size={10} /> ÚLTIMAS UNIDADES
+            <AlertTriangle size={10} /> ULTIMAS UNIDADES
           </span>
         )}
       </div>
@@ -181,6 +186,10 @@ function AllProductsPage() {
   });
 
   const sorted = [...filtered].sort((a, b) => {
+    // Always push out-of-stock to end regardless of sort mode
+    const aOut = a.quantity === 0 ? 1 : 0;
+    const bOut = b.quantity === 0 ? 1 : 0;
+    if (aOut !== bOut) return aOut - bOut;
     if (sortBy === "price-low") return a.price - b.price;
     if (sortBy === "price-high") return b.price - a.price;
     if (sortBy === "name") return a.name.localeCompare(b.name);
