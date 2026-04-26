@@ -27,7 +27,7 @@ function SalesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const finalizingSale = () => {
+  const finalizingSale = async () => {
     if (isProcessing.current) return;
     isProcessing.current = true;
 
@@ -59,16 +59,16 @@ function SalesPage() {
       status: "received",
     };
 
-    console.log("ORDEN A ENVIAR --->", orderData);
-    console.log("PAYMENT DATA --->", paymentMethodData);
-    console.log("CARD DETAILS DEL CONTEXTO --->", payment);
-
-    createOrder(orderData);
-    updateStepOrder(0);
-    clearCart();
-
-    setTimeout(() => { isProcessing.current = false; }, 1000);
-    navigate("/getallproducts");
+    try {
+      await createOrder(orderData);
+      updateStepOrder(0);
+      clearCart();
+      navigate("/orders");
+    } catch (error) {
+      console.error("Error al finalizar venta:", error);
+    } finally {
+      isProcessing.current = false;
+    }
   };
 
   useEffect(() => {

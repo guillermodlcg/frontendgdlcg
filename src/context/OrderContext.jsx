@@ -58,11 +58,14 @@ const getOrders = async () => {
 const createOrder = async (order) => {
     try {
         await createOrderRequest(order);
-        await getOrders();
         toast.success("Orden creada con éxito");
+        // Refrescar lista silenciosamente sin bloquear ni mostrar error
+        try { await getOrders(); } catch (_) {}
     } catch (error) {
-        toast.error("Error al crear la orden");
-        setErrors(error.response.data.message);
+        const msg = error.response?.data?.message?.[0] || error.response?.data?.message || "Error al crear la orden";
+        toast.error(msg);
+        setErrors(msg);
+        throw error; // re-lanzar para que SalesPage pueda manejarlo
     }
 }; //Fin de createOrder
 
