@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from "r
 import { registerRequest, loginRequest, verifyTokenRequest, logoutRequest } from "../api/auth";
 import Cookies from 'js-cookie';
 import { safeStorage } from '../utils/safeStorage';
+import { setAxiosToken } from '../api/axiosInstance';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
@@ -25,7 +26,12 @@ export const AuthProvider = ({ children }) => {
     const tokenRef = useRef(safeStorage.getItem('gdlcg_token'));
 
     const [user, setUser] = useState(() => getStoredUser());
-    const [isAuthenticated, setIsAuthenticated] = useState(() => !!safeStorage.getItem('gdlcg_token'));
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        const stored = safeStorage.getItem('gdlcg_token');
+        // FIX A: set axios header immediately on app load/refresh
+        if (stored) setAxiosToken(stored);
+        return !!stored;
+    });
     const [isAdmin, setIsAdmin] = useState(() => {
         const u = getStoredUser();
         return u?.role === ROLE_ADMIN;
@@ -35,6 +41,8 @@ export const AuthProvider = ({ children }) => {
 
     const updateToken = (token) => {
         tokenRef.current = token;
+        // FIX B: always sync axios header when token changes
+        setAxiosToken(token);
         if (token) safeStorage.setItem('gdlcg_token', token);
         else safeStorage.removeItem('gdlcg_token');
     };
@@ -99,6 +107,7 @@ export const AuthProvider = ({ children }) => {
 
             // Sincronizar ref con el token encontrado
             tokenRef.current = token;
+            setAxiosToken(token);
 
             const storedUser = getStoredUser();
             if (storedUser) {
@@ -138,6 +147,8 @@ export const AuthProvider = ({ children }) => {
     const logOut = () => {
         logoutRequest();
         clearAll();
+        // FIX C: clear axios header on logout
+        setAxiosToken(null);
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUser(null);
