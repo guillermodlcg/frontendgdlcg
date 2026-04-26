@@ -40,10 +40,15 @@ export function ProductsProvider({ children }) {
 
   const createProduct = async (product) => {
     try {
-      await createProductRequest(product);
+      console.log('[PRODUCT] Starting creation...');
+      const res = await createProductRequest(product);
+      console.log('[PRODUCT] POST response status:', res.status);
+      console.log('[PRODUCT] Created product:', res.data?.name, 'image:', !!res.data?.image);
       await getProducts();
+      console.log('[PRODUCT] List refreshed, count:', products.length);
       return true;
     } catch (error) {
+      console.log('[PRODUCT] Error:', error.response?.data || error.message);
       const msg = error.response?.data?.message || ['Error al crear producto'];
       setErrors(msg);
     }
