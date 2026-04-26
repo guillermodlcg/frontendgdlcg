@@ -26,6 +26,8 @@ instance.interceptors.request.use((config) => {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
     }
+    console.log('[AXIOS] URL:', config.url);
+    console.log('[AXIOS] Has token:', !!config.headers['Authorization']);
     return config;
 });
 

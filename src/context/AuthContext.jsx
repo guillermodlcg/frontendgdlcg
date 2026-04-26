@@ -73,7 +73,10 @@ export const AuthProvider = ({ children }) => {
             const res = await loginRequest(userData);
             await new Promise(r => setTimeout(r, 150));
             const cookieToken = Cookies.get('token');
+            console.log('[AUTH] Token received:', !!cookieToken);
             if (cookieToken) updateToken(cookieToken);
+            console.log('[AUTH] setAxiosToken called');
+            console.log('[AUTH] safeStorage readback:', !!safeStorage.getItem('gdlcg_token'));
             safeStorage.setItem('gdlcg_user', JSON.stringify(res.data));
             if (res.data.role === ROLE_ADMIN) setIsAdmin(true);
             setUser(res.data);
