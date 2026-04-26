@@ -4,13 +4,13 @@ import axios from './axiosInstance';
 export const createOrderRequest = (order) => axios.post('/order', order);
 
 //Llamada para actualizar el estado de una orden
-export const updateStatusOrderRequest = (id, status) => axios.put('/order/'+id, status);
+export const updateStatusOrderRequest = (id, status) => axios.put('/order/status/'+id, status);
 
 //Llamada para obtener todas las ordenes para el administrador
-export const getOrdersRequest = () => axios.get('/order');
+export const getOrdersRequest = () => axios.get('/order/admin/all');
 
 //Llamada al api para obtener todas las ordenes para un usuario
-export const getUserOrderRequest = () => axios.get('/order/getuserorders');
+export const getUserOrderRequest = () => axios.get('/order/my');
 
 //Llamada al api para obtener una orden por id
 export const getOrderByIDRequest = ( id ) => axios.get('/order/'+id)

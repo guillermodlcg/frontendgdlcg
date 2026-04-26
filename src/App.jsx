@@ -9,6 +9,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductsFormPage from "./pages/ProductsFormPage";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { ProductsProvider } from "./context/ProductContext";
@@ -20,6 +21,8 @@ import Cart from "./components/Cart";
 import SalesPage from "./pages/SalesPage";
 import { OrdersProvider } from "./context/OrderContext";
 import OrdersPage from "./pages/OrdersPage";
+import UserOrdersPage from "./pages/UserOrdersPage";
+import AdminOrdersPage from "./pages/AdminOrdersPage";
 import IdValidator from "./context/IdValidator";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -66,8 +69,11 @@ function App() {
                     <Route path="/products/:id" element={<IdValidator><ProductsFormPage /></IdValidator>} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/sale" element={<SalesPage />} />
-                    <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/orders" element={<UserOrdersPage />} />
                     <Route path="/users" element={<AdminUsersPage />} />
+                    <Route element={<AdminRoute />}>
+                        <Route path="/admin/orders" element={<AdminOrdersPage />} />
+                    </Route>
                   </Route>
                   {/*Ruta 404 para rutas no existentes */}
                   <Route path="*" element={<NotFound />} />

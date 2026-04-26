@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { registerRequest, loginRequest, verifyTokenRequest, logoutRequest } from "../api/auth";
 import Cookies from 'js-cookie';
+import { safeStorage } from '../utils/safeStorage';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
@@ -13,29 +14,18 @@ export const useAuth = () => {
 
 const ROLE_ADMIN = import.meta.env.VITE_ROLE_ADMIN;
 
-// Helpers localStorage
-const saveToken = (token) => {
-    localStorage.setItem('gdlcg_token', token);
-};
-const saveUser = (user) => {
-    localStorage.setItem('gdlcg_user', JSON.stringify(user));
-};
-const clearStorage = () => {
-    localStorage.removeItem('gdlcg_token');
-    localStorage.removeItem('gdlcg_user');
-};
-const getStoredToken = () => localStorage.getItem('gdlcg_token');
 const getStoredUser = () => {
     try {
-        const u = localStorage.getItem('gdlcg_user');
+        const u = safeStorage.getItem('gdlcg_user');
         return u ? JSON.parse(u) : null;
     } catch { return null; }
 };
 
 export const AuthProvider = ({ children }) => {
-    // Inicializar desde localStorage para sobrevivir refresh en móvil
+    const tokenRef = useRef(safeStorage.getItem('gdlcg_token'));
+
     const [user, setUser] = useState(() => getStoredUser());
-    const [isAuthenticated, setIsAuthenticated] = useState(() => !!getStoredToken());
+    const [isAuthenticated, setIsAuthenticated] = useState(() => !!safeStorage.getItem('gdlcg_token'));
     const [isAdmin, setIsAdmin] = useState(() => {
         const u = getStoredUser();
         return u?.role === ROLE_ADMIN;
@@ -43,12 +33,25 @@ export const AuthProvider = ({ children }) => {
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const updateToken = (token) => {
+        tokenRef.current = token;
+        if (token) safeStorage.setItem('gdlcg_token', token);
+        else safeStorage.removeItem('gdlcg_token');
+    };
+
+    const clearAll = () => {
+        updateToken(null);
+        safeStorage.removeItem('gdlcg_user');
+        Cookies.remove('token');
+    };
+
     const signUp = async (userData) => {
         try {
             const res = await registerRequest(userData);
-            const token = Cookies.get('token') || getStoredToken();
-            if (token) saveToken(token);
-            saveUser(res.data);
+            await new Promise(r => setTimeout(r, 150));
+            const cookieToken = Cookies.get('token');
+            if (cookieToken) updateToken(cookieToken);
+            safeStorage.setItem('gdlcg_user', JSON.stringify(res.data));
             setUser(res.data);
             setIsAuthenticated(true);
             setIsAdmin(false);
@@ -60,11 +63,10 @@ export const AuthProvider = ({ children }) => {
     const signIn = async (userData) => {
         try {
             const res = await loginRequest(userData);
-            // Esperar un tick para que la cookie se establezca
-            await new Promise(r => setTimeout(r, 100));
-            const token = Cookies.get('token');
-            if (token) saveToken(token);
-            saveUser(res.data);
+            await new Promise(r => setTimeout(r, 150));
+            const cookieToken = Cookies.get('token');
+            if (cookieToken) updateToken(cookieToken);
+            safeStorage.setItem('gdlcg_user', JSON.stringify(res.data));
             if (res.data.role === ROLE_ADMIN) setIsAdmin(true);
             setUser(res.data);
             setIsAuthenticated(true);
@@ -81,23 +83,23 @@ export const AuthProvider = ({ children }) => {
         }
     }, [errors]);
 
-    // checkLogin: verifica cookie O localStorage
     useEffect(() => {
         async function checkLogin() {
             const cookieToken = Cookies.get('token');
-            const localToken = getStoredToken();
+            const localToken = safeStorage.getItem('gdlcg_token');
             const token = cookieToken || localToken;
 
             if (!token) {
                 setIsAuthenticated(false);
                 setLoading(false);
                 setUser(null);
-                clearStorage();
+                clearAll();
                 return;
             }
 
-            // Si tenemos usuario en localStorage, usarlo inmediatamente
-            // para no bloquear la UI mientras verificamos
+            // Sincronizar ref con el token encontrado
+            tokenRef.current = token;
+
             const storedUser = getStoredUser();
             if (storedUser) {
                 setUser(storedUser);
@@ -111,34 +113,31 @@ export const AuthProvider = ({ children }) => {
                     setIsAuthenticated(false);
                     setUser(null);
                     setIsAdmin(false);
-                    clearStorage();
+                    clearAll();
                 } else {
                     setIsAuthenticated(true);
                     setUser(res.data);
-                    saveUser(res.data);
+                    safeStorage.setItem('gdlcg_user', JSON.stringify(res.data));
                     if (res.data.role === ROLE_ADMIN) setIsAdmin(true);
                     else setIsAdmin(false);
                 }
-            } catch (error) {
-                // Si falla la verificación pero tenemos datos locales, mantener sesión
+            } catch {
                 if (!storedUser) {
                     setIsAuthenticated(false);
                     setUser(null);
                     setIsAdmin(false);
-                    clearStorage();
+                    clearAll();
                 }
             } finally {
                 setLoading(false);
             }
         }
-
         checkLogin();
     }, []);
 
     const logOut = () => {
         logoutRequest();
-        Cookies.remove('token');
-        clearStorage();
+        clearAll();
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUser(null);
@@ -148,7 +147,8 @@ export const AuthProvider = ({ children }) => {
     return (
         <AuthContext.Provider value={{
             signUp, signIn, user, setUser,
-            isAuthenticated, errors, loading, isAdmin, logOut
+            isAuthenticated, errors, loading, isAdmin, logOut,
+            tokenRef
         }}>
             {children}
         </AuthContext.Provider>
