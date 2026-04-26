@@ -24,13 +24,13 @@ const LABEL_STYLE = DM(10, 600, { textTransform: "uppercase", letterSpacing: "1.
 const ICON_WRAP = { position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" };
 
 function AddPayment() {
-  const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: { paymentMethod: "pickup", cardNumber: "", cardName: "", expirationDate: "", ccv: "", userName: "" },
-  });
-
   const { updatePayment, updateStepOrder } = useProducts();
   const { user } = useAuth();
+
+  const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: { paymentMethod: "pickup", cardNumber: "", cardName: "", expirationDate: "", ccv: "", userName: user?.username || "" },
+  });
   const [paymentType, setPaymenType] = useState("pickup");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -155,7 +155,7 @@ function AddPayment() {
               <label style={LABEL_STYLE}>Nombre del cliente</label>
               <div style={{ position: "relative" }}>
                 <div style={ICON_WRAP}><IoPersonOutline size={16} color="#8a9bb0" /></div>
-                <input type="text" value={user.username} placeholder="Nombre del cliente"
+                <input type="text" placeholder="Nombre del cliente"
                   style={INPUT_STYLE(errors?.userName)} {...register("userName")} />
               </div>
               {errors?.userName && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.userName.message}</span>}
