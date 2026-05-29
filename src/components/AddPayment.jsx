@@ -26,7 +26,7 @@ function AddPayment() {
   const { updatePayment, updateStepOrder } = useProducts();
   const { user } = useAuth();
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: { paymentMethod: "pickup", cardNumber: "", cardName: "", expirationDate: "", ccv: "", userName: user?.username || "" },
   });
@@ -42,7 +42,6 @@ function AddPayment() {
   };
 
   const onSubmit = (data) => {
-    // Solo pickup llega aquí — card va directo a updateStepOrder(3)
     updatePayment({ paymentMethod, userName: data.userName });
     updateStepOrder(4);
   };
@@ -53,14 +52,11 @@ function AddPayment() {
     <div style={{ maxWidth: 560, margin: "0 auto" }}>
       <div style={{ background: "#fff", border: "1px solid #e5e0d8", borderRadius: 14, overflow: "hidden", boxShadow: "0 4px 24px rgba(15,31,53,0.08)" }}>
 
-        {/* Header */}
         <div style={{ background: "#0f1f35", padding: "20px 28px" }}>
           <span style={BC("22px", { color: "#fff" })}>MÉTODO DE PAGO</span>
         </div>
 
         <div style={{ padding: "28px" }}>
-
-          {/* Selector de método */}
           <div style={{ display: "flex", gap: 12, marginBottom: 28 }}>
             {[{ value: "pickup", label: "Recoger en tienda" }, { value: "card", label: "Pago con tarjeta" }].map(opt => (
               <button key={opt.value} type="button" onClick={() => handlePaymentMethodChange(opt.value)}
@@ -75,7 +71,6 @@ function AddPayment() {
             ))}
           </div>
 
-          {/* Stripe: aviso en vez de formulario de tarjeta */}
           {paymentType === "card" && (
             <div style={{ background: "#f0f4ff", border: "1px solid #c7d7f5", borderRadius: 8, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
               <MdLock size={28} color="#1d4b8a" style={{ flexShrink: 0 }} />
@@ -88,7 +83,6 @@ function AddPayment() {
             </div>
           )}
 
-          {/* Pickup */}
           {paymentType === "pickup" && (
             <div>
               <label style={LABEL_STYLE}>Nombre del cliente</label>
@@ -102,7 +96,6 @@ function AddPayment() {
           )}
         </div>
 
-        {/* Footer botones */}
         <div style={{ borderTop: "1px solid #e5e0d8", padding: "16px 28px", display: "flex", justifyContent: "space-between", background: "#fafaf8" }}>
           <button type="button" onClick={reviewConfirm}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", border: "1px solid #e5e0d8", borderRadius: 6, padding: "10px 20px", cursor: "pointer", ...DM(12, 600, { color: "#0f1f35" }) }}>
@@ -113,7 +106,7 @@ function AddPayment() {
               if (paymentType === "pickup") {
                 setIsModalOpen(true);
               } else {
-                // Stripe: avanza al paso de dirección
+                updatePayment({ paymentMethod: "card" });
                 updateStepOrder(3);
               }
             }}
