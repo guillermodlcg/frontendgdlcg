@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useOrders } from "../context/OrderContext";
 import { Link } from "react-router-dom";
 import OrderCard from "../components/OrderCard";
@@ -19,11 +21,17 @@ function UserOrdersPage() {
   const { getOrders, orders } = useOrders();
   const [activeTab, setActiveTab] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     // iOS Safari: defer slightly to ensure token is available in storage
     const t = setTimeout(() => { getOrders?.(); }, 50);
     return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (searchParams.get('payment') === 'success') {
+      toast.success('¡Pago completado! Tu pedido está siendo procesado.');
+    }
   }, []);
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);

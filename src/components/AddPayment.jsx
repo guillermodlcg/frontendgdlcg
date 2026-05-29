@@ -2,10 +2,9 @@ import { useForm } from "react-hook-form";
 import { useProducts } from "../context/ProductContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { paymentSchema } from "../schemas/paymentSchema";
-import { IoCarOutline, IoPersonOutline } from "react-icons/io5";
-import { BsCalendar2Date } from "react-icons/bs";
-import { FaCcMastercard } from "react-icons/fa";
+import { IoPersonOutline } from "react-icons/io5";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
+import { MdLock } from "react-icons/md";
 import { useAuth } from "../context/AuthContext";
 import React, { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
@@ -31,13 +30,11 @@ function AddPayment() {
     resolver: zodResolver(paymentSchema),
     defaultValues: { paymentMethod: "pickup", cardNumber: "", cardName: "", expirationDate: "", ccv: "", userName: user?.username || "" },
   });
+
   const [paymentType, setPaymenType] = useState("pickup");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const paymentMethod = watch("paymentMethod");
-  const cardNumber = watch("cardNumber");
-  const expirationDate = watch("expirationDate");
-  const ccv = watch("ccv");
 
   const handlePaymentMethodChange = (method) => {
     setValue("paymentMethod", method);
@@ -45,36 +42,12 @@ function AddPayment() {
   };
 
   const onSubmit = (data) => {
-    if (paymentType === "card") {
-      updatePayment({ paymentMethod, cardDetails: { cardName: data.cardName, cardNumber: data.cardNumber, expirationDate: data.expirationDate, ccv: data.ccv } });
-      updateStepOrder(3);
-    } else {
-      updatePayment({ paymentMethod, userName: data.userName });
-      updateStepOrder(4);
-    }
+    // Solo pickup llega aquí — card va directo a updateStepOrder(3)
+    updatePayment({ paymentMethod, userName: data.userName });
+    updateStepOrder(4);
   };
 
   const reviewConfirm = () => { updateStepOrder(1); };
-
-  const formatCardNumber = (value) => {
-    const digits = value.replace(/\D/g, "");
-    const groups = digits.match(/.{1,4}/g);
-    return groups ? groups.join(" ").slice(0, 19) : "";
-  };
-
-  const handleDateChange = (e) => {
-    const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-    const formatted = val.length >= 3 ? val.slice(0, 2) + "/" + val.slice(2) : val;
-    setValue("expirationDate", formatted);
-    trigger("expirationDate");
-  };
-
-  const handleCardNumberChange = (e) => {
-    const formatted = formatCardNumber(e.target.value);
-    setValue("cardNumber", formatted);
-    setValue("cardNumberClean", formatted.replace(/\s/g, ""));
-    trigger("cardNumber");
-  };
 
   return (
     <div style={{ maxWidth: 560, margin: "0 auto" }}>
@@ -102,49 +75,15 @@ function AddPayment() {
             ))}
           </div>
 
-          {/* Tarjeta */}
+          {/* Stripe: aviso en vez de formulario de tarjeta */}
           {paymentType === "card" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              <p style={BC("16px", { color: "#0f1f35", margin: "0 0 4px", borderBottom: "1px solid #e5e0d8", paddingBottom: 10 })}>DATOS DE LA TARJETA</p>
-
+            <div style={{ background: "#f0f4ff", border: "1px solid #c7d7f5", borderRadius: 8, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+              <MdLock size={28} color="#1d4b8a" style={{ flexShrink: 0 }} />
               <div>
-                <label style={LABEL_STYLE}>Número de tarjeta</label>
-                <div style={{ position: "relative" }}>
-                  <div style={ICON_WRAP}><IoCarOutline size={16} color="#8a9bb0" /></div>
-                  <input type="text" placeholder="1234 5678 9012 3456" style={INPUT_STYLE(errors?.cardNumber)}
-                    {...register("cardNumber")} onChange={handleCardNumberChange} value={cardNumber} />
-                </div>
-                {errors?.cardNumber && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.cardNumber.message}</span>}
-              </div>
-
-              <div>
-                <label style={LABEL_STYLE}>Nombre en la tarjeta</label>
-                <div style={{ position: "relative" }}>
-                  <div style={ICON_WRAP}><IoPersonOutline size={16} color="#8a9bb0" /></div>
-                  <input type="text" placeholder="Juan Pérez" style={INPUT_STYLE(errors?.cardName)} {...register("cardName")} />
-                </div>
-                {errors?.cardName && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.cardName.message}</span>}
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div>
-                  <label style={LABEL_STYLE}>Fecha (mm/aa)</label>
-                  <div style={{ position: "relative" }}>
-                    <div style={ICON_WRAP}><BsCalendar2Date size={16} color="#8a9bb0" /></div>
-                    <input type="text" placeholder="mm/aa" maxLength={5} style={INPUT_STYLE(errors?.expirationDate)}
-                      value={expirationDate} {...register("expirationDate")} onChange={handleDateChange} onBlur={() => trigger("expirationDate")} />
-                  </div>
-                  {errors?.expirationDate && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.expirationDate.message}</span>}
-                </div>
-                <div>
-                  <label style={LABEL_STYLE}>CCV</label>
-                  <div style={{ position: "relative" }}>
-                    <div style={ICON_WRAP}><FaCcMastercard size={16} color="#8a9bb0" /></div>
-                    <input type="text" maxLength={3} placeholder="123" style={INPUT_STYLE(errors?.ccv)}
-                      value={ccv} {...register("ccv")} onChange={(e) => { const val = e.target.value.replace(/\D/g, "").slice(0, 3); setValue("ccv", val); trigger("ccv"); }} />
-                  </div>
-                  {errors?.ccv && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.ccv.message}</span>}
-                </div>
+                <p style={DM(13, 600, { color: "#0f1f35", margin: "0 0 4px" })}>Pago seguro con Stripe</p>
+                <p style={DM(12, 400, { color: "#4a5568", margin: 0 })}>
+                  Serás redirigido a Stripe para completar tu pago de forma segura. No almacenamos datos de tu tarjeta.
+                </p>
               </div>
             </div>
           )}
@@ -170,11 +109,18 @@ function AddPayment() {
             <GrFormPreviousLink size={18} /> Revisar Orden
           </button>
           <button type="button"
-            onClick={() => { if (paymentType === "pickup") { setIsModalOpen(true); } else { handleSubmit(onSubmit)(); } }}
+            onClick={() => {
+              if (paymentType === "pickup") {
+                setIsModalOpen(true);
+              } else {
+                // Stripe: avanza al paso de dirección
+                updateStepOrder(3);
+              }
+            }}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
             onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
             onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
-            {paymentType === "pickup" ? "Finalizar pedido" : "Agregar dirección"} <GrFormNextLink size={18} />
+            {paymentType === "pickup" ? "Finalizar pedido" : "Continuar al pago"} <GrFormNextLink size={18} />
           </button>
         </div>
 

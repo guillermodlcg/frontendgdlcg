@@ -5,6 +5,7 @@ import { useProducts } from "../context/ProductContext";
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useOrders } from "../context/OrderContext";
+import { createCheckoutSession } from '../api/stripe';
 
 const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
 const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
@@ -31,41 +32,61 @@ function SalesPage() {
     if (isProcessing.current) return;
     isProcessing.current = true;
 
-    let paymentMethodData = {};
-    if (payment.paymentMethod === "card") {
-      paymentMethodData = { method: "card", cardDetails: payment.cardDetails, shippingAddress: address };
-    } else {
-      paymentMethodData = { method: "pickup", userName: payment.userName };
-    }
-
-    const subTotalValue = Number(calculateSubTotal || 0);
-    const totalValue = Number(calculateTotal || 0);
-    const ivaValue = Number(calculateIva(subTotalValue) || 0);
-
-    const orderData = {
-      items: cart.map((item) => ({
-        productId: item._id,
-        productName: item.name || "Producto sin nombre",
-        quantity: item.toSell.toString(),
-        price: item.price.toString(),
-        talla: item.talla || "Única",
-        color: item.color || "Sin especificar",
-      })),
-      paymentMethod: paymentMethodData,
-      totalProducts: getTotalProducts().toString(),
-      subTotal: subTotalValue.toString(),
-      total: totalValue.toString(),
-      iva: ivaValue.toFixed(2),
-      status: "received",
-    };
-
     try {
-      await createOrder(orderData);
-      updateStepOrder(0);
-      clearCart();
-      navigate("/orders");
+      if (payment.paymentMethod === 'card') {
+        // Flujo Stripe
+        const orderData = {
+          items: cart.map((item) => ({
+            productId: item._id,
+            productName: item.name || 'Producto sin nombre',
+            quantity: item.toSell.toString(),
+            price: item.price.toString(),
+            talla: item.talla || 'Única',
+            color: item.color || 'Sin especificar',
+          })),
+          shippingAddress: address,
+          totalProducts: getTotalProducts().toString(),
+          subTotal: Number(calculateSubTotal || 0).toString(),
+          total: Number(calculateTotal || 0).toString(),
+          iva: Number(calculateIva(Number(calculateSubTotal || 0)) || 0).toFixed(2),
+          paymentMethod: 'card',
+        };
+
+        const { url } = await createCheckoutSession(orderData);
+        updateStepOrder(0);
+        clearCart();
+        window.location.href = url;
+      } else {
+        // Flujo pickup
+        let paymentMethodData = { method: 'pickup', userName: payment.userName };
+        const subTotalValue = Number(calculateSubTotal || 0);
+        const totalValue = Number(calculateTotal || 0);
+        const ivaValue = Number(calculateIva(subTotalValue) || 0);
+
+        const orderData = {
+          items: cart.map((item) => ({
+            productId: item._id,
+            productName: item.name || 'Producto sin nombre',
+            quantity: item.toSell.toString(),
+            price: item.price.toString(),
+            talla: item.talla || 'Única',
+            color: item.color || 'Sin especificar',
+          })),
+          paymentMethod: paymentMethodData,
+          totalProducts: getTotalProducts().toString(),
+          subTotal: subTotalValue.toString(),
+          total: totalValue.toString(),
+          iva: ivaValue.toFixed(2),
+          status: 'received',
+        };
+
+        await createOrder(orderData);
+        updateStepOrder(0);
+        clearCart();
+        navigate('/orders');
+      }
     } catch (error) {
-      console.error("Error al finalizar venta:", error);
+      console.error('Error al finalizar venta:', error);
     } finally {
       isProcessing.current = false;
     }

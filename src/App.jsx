@@ -25,9 +25,9 @@ import UserOrdersPage from "./pages/UserOrdersPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import IdValidator from "./context/IdValidator";
 import { ThemeProvider } from "./context/ThemeContext";
-
 import AboutPage from "./pages/AboutPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -70,6 +70,7 @@ function App() {
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/sale" element={<SalesPage />} />
                     <Route path="/orders" element={<UserOrdersPage />} />
+                    <Route path="/payment-success" element={<PaymentSuccessPage />} />
                     <Route path="/users" element={<AdminUsersPage />} />
                     <Route element={<AdminRoute />}>
                         <Route path="/admin/orders" element={<AdminOrdersPage />} />
