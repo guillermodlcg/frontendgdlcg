@@ -34,7 +34,8 @@ function SalesPage() {
 
     try {
       if (payment.paymentMethod === 'card') {
-        // Flujo Stripe
+        // ─── Flujo Stripe ───
+        // Nota: payment.paymentMethod ya fue seteado en AddPayment antes de llamar aquí
         const orderData = {
           items: cart.map((item) => ({
             productId: item._id,
@@ -55,9 +56,9 @@ function SalesPage() {
         const { url } = await createCheckoutSession(orderData);
         updateStepOrder(0);
         clearCart();
-        window.location.href = url;
+        window.location.href = url; // redirige a Stripe
       } else {
-        // Flujo pickup
+        // ─── Flujo pickup ───
         let paymentMethodData = { method: 'pickup', userName: payment.userName };
         const subTotalValue = Number(calculateSubTotal || 0);
         const totalValue = Number(calculateTotal || 0);
@@ -92,8 +93,11 @@ function SalesPage() {
     }
   };
 
+  // ─── CAMBIO: este useEffect ya NO dispara finalizingSale para tarjeta.
+  // Solo se mantiene para el flujo pickup que llega al paso 4 desde ConfirmModal.
   useEffect(() => {
     if (stepOrder === 4) finalizingSale();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepOrder]);
 
   return (
@@ -132,11 +136,13 @@ function SalesPage() {
         </div>
 
         {/* Step content */}
+        {/* ─── CAMBIO: AddPayment recibe finalizingSale como prop onStripeCheckout ─── */}
         <div>
           {stepOrder === 1 && <CartResume />}
-          {stepOrder === 2 && <AddPayment />}
+          {stepOrder === 2 && <AddPayment onStripeCheckout={finalizingSale} />}
           {stepOrder === 3 && <AddAddress />}
         </div>
+
       </div>
     </div>
   );
