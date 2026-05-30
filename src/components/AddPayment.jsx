@@ -22,19 +22,23 @@ const INPUT_STYLE = (hasError) => ({
 const LABEL_STYLE = DM(10, 600, { textTransform: "uppercase", letterSpacing: "1.5px", color: "#8a9bb0", display: "block", marginBottom: 6 });
 const ICON_WRAP = { position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" };
 
-// ─── CAMBIO: recibe onStripeCheckout como prop desde SalesPage ───
 function AddPayment({ onStripeCheckout }) {
   const { updatePayment, updateStepOrder } = useProducts();
   const { user } = useAuth();
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+  // Usar name o username, lo que esté disponible
+  const defaultName = user?.name || user?.username || "";
+
+  const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm({
     resolver: zodResolver(paymentSchema),
-    defaultValues: { paymentMethod: "pickup", cardNumber: "", cardName: "", expirationDate: "", ccv: "", userName: user?.username || "" },
+    defaultValues: {
+      paymentMethod: "pickup",
+      userName: defaultName,
+    },
   });
 
   const [paymentType, setPaymenType] = useState("pickup");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // ─── CAMBIO: estado de carga para evitar doble clic ───
   const [isLoading, setIsLoading] = useState(false);
 
   const paymentMethod = watch("paymentMethod");
@@ -44,15 +48,22 @@ function AddPayment({ onStripeCheckout }) {
     setPaymenType(method);
   };
 
-  // onSubmit solo se usa para el flujo pickup (vía ConfirmModal)
+  // Para pickup: validar el campo antes de abrir el modal
+  const handlePickupClick = async () => {
+    const valid = await trigger("userName");
+    if (valid) {
+      setIsModalOpen(true);
+    }
+  };
+
+  // onSubmit solo se ejecuta si handleSubmit valida correctamente
   const onSubmit = (data) => {
-    updatePayment({ paymentMethod, userName: data.userName });
+    updatePayment({ paymentMethod: "pickup", userName: data.userName });
     updateStepOrder(4);
   };
 
   const reviewConfirm = () => { updateStepOrder(1); };
 
-  // ─── CAMBIO: manejador para el flujo Stripe ───
   const handleStripeClick = async () => {
     if (isLoading) return;
     setIsLoading(true);
@@ -106,10 +117,18 @@ function AddPayment({ onStripeCheckout }) {
               <label style={LABEL_STYLE}>Nombre del cliente</label>
               <div style={{ position: "relative" }}>
                 <div style={ICON_WRAP}><IoPersonOutline size={16} color="#8a9bb0" /></div>
-                <input type="text" placeholder="Nombre del cliente"
-                  style={INPUT_STYLE(errors?.userName)} {...register("userName")} />
+                <input
+                  type="text"
+                  placeholder="Nombre del cliente"
+                  style={INPUT_STYLE(errors?.userName)}
+                  {...register("userName")}
+                />
               </div>
-              {errors?.userName && <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>{errors.userName.message}</span>}
+              {errors?.userName && (
+                <span style={DM(11, 400, { color: "#dc2626", display: "block", marginTop: 4 })}>
+                  {errors.userName.message}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -120,11 +139,10 @@ function AddPayment({ onStripeCheckout }) {
             <GrFormPreviousLink size={18} /> Revisar Orden
           </button>
 
-          {/* ─── CAMBIO: botón separado según método de pago ─── */}
           {paymentType === "pickup" ? (
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
+              onClick={handlePickupClick}
               style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
               onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
               onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
