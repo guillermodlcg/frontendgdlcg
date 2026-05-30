@@ -35,7 +35,11 @@ function SalesPage() {
     try {
       if (payment.paymentMethod === 'card') {
         // ─── Flujo Stripe ───
-        // Nota: payment.paymentMethod ya fue seteado en AddPayment antes de llamar aquí
+        // Redondear correctamente para que subTotal + iva === total exactamente
+        const sub = parseFloat(Number(calculateSubTotal || 0).toFixed(2));
+        const iva = parseFloat(Number(calculateIva(sub) || 0).toFixed(2));
+        const tot = parseFloat((sub + iva).toFixed(2));
+
         const orderData = {
           items: cart.map((item) => ({
             productId: item._id,
@@ -47,9 +51,9 @@ function SalesPage() {
           })),
           shippingAddress: address,
           totalProducts: getTotalProducts().toString(),
-          subTotal: Number(calculateSubTotal || 0).toString(),
-          total: Number(calculateTotal || 0).toString(),
-          iva: Number(calculateIva(Number(calculateSubTotal || 0)) || 0).toFixed(2),
+          subTotal: sub.toFixed(2),
+          iva: iva.toFixed(2),
+          total: tot.toFixed(2),
           paymentMethod: 'card',
         };
 
@@ -59,10 +63,9 @@ function SalesPage() {
         window.location.href = url; // redirige a Stripe
       } else {
         // ─── Flujo pickup ───
-        let paymentMethodData = { method: 'pickup', userName: payment.userName };
-        const subTotalValue = Number(calculateSubTotal || 0);
-        const totalValue = Number(calculateTotal || 0);
-        const ivaValue = Number(calculateIva(subTotalValue) || 0);
+        const sub = parseFloat(Number(calculateSubTotal || 0).toFixed(2));
+        const iva = parseFloat(Number(calculateIva(sub) || 0).toFixed(2));
+        const tot = parseFloat((sub + iva).toFixed(2));
 
         const orderData = {
           items: cart.map((item) => ({
@@ -73,11 +76,11 @@ function SalesPage() {
             talla: item.talla || 'Única',
             color: item.color || 'Sin especificar',
           })),
-          paymentMethod: paymentMethodData,
+          paymentMethod: { method: 'pickup', userName: payment.userName },
           totalProducts: getTotalProducts().toString(),
-          subTotal: subTotalValue.toString(),
-          total: totalValue.toString(),
-          iva: ivaValue.toFixed(2),
+          subTotal: sub.toFixed(2),
+          iva: iva.toFixed(2),
+          total: tot.toFixed(2),
           status: 'received',
         };
 
@@ -93,8 +96,7 @@ function SalesPage() {
     }
   };
 
-  // ─── CAMBIO: este useEffect ya NO dispara finalizingSale para tarjeta.
-  // Solo se mantiene para el flujo pickup que llega al paso 4 desde ConfirmModal.
+  // Solo se activa para pickup (llega al paso 4 desde ConfirmModal en AddPayment)
   useEffect(() => {
     if (stepOrder === 4) finalizingSale();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -136,7 +138,6 @@ function SalesPage() {
         </div>
 
         {/* Step content */}
-        {/* ─── CAMBIO: AddPayment recibe finalizingSale como prop onStripeCheckout ─── */}
         <div>
           {stepOrder === 1 && <CartResume />}
           {stepOrder === 2 && <AddPayment onStripeCheckout={finalizingSale} />}
