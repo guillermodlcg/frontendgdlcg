@@ -28,14 +28,14 @@ function SalesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const finalizingSale = async () => {
+  const finalizingSale = async (forcedMethod) => {
     if (isProcessing.current) return;
     isProcessing.current = true;
 
+    const method = forcedMethod || payment.paymentMethod;
+
     try {
-      if (payment.paymentMethod === 'card') {
-        // ─── Flujo Stripe ───
-        // Redondear correctamente para que subTotal + iva === total exactamente
+      if (method === 'card') {
         const sub = parseFloat(Number(calculateSubTotal || 0).toFixed(2));
         const iva = parseFloat(Number(calculateIva(sub) || 0).toFixed(2));
         const tot = parseFloat((sub + iva).toFixed(2));
@@ -60,9 +60,8 @@ function SalesPage() {
         const { url } = await createCheckoutSession(orderData);
         updateStepOrder(0);
         clearCart();
-        window.location.href = url; // redirige a Stripe
+        window.location.href = url;
       } else {
-        // ─── Flujo pickup ───
         const sub = parseFloat(Number(calculateSubTotal || 0).toFixed(2));
         const iva = parseFloat(Number(calculateIva(sub) || 0).toFixed(2));
         const tot = parseFloat((sub + iva).toFixed(2));
@@ -96,7 +95,6 @@ function SalesPage() {
     }
   };
 
-  // Solo se activa para pickup (llega al paso 4 desde ConfirmModal en AddPayment)
   useEffect(() => {
     if (stepOrder === 4) finalizingSale();
     // eslint-disable-next-line react-hooks/exhaustive-deps
