@@ -107,7 +107,7 @@ function AddPayment() {
                 setIsModalOpen(true);
               } else {
                 updatePayment({ paymentMethod: "card" });
-                updateStepOrder(3);
+                updateStepOrder(4);
               }
             }}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
