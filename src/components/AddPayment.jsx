@@ -152,5 +152,18 @@ function AddPayment({ onStripeCheckout }) {
           )}
         </div>
 
-        <ConfirmModal
+           <ConfirmModal
           isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleSubmit(onSubmit)}
+          title="Confirmar Pedido"
+          text="¿Estás seguro que deseas confirmar este pedido? Esta acción no se puede deshacer"
+          btnAccept="Confirmar"
+          btnCancel="Cancelar"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default AddPayment;
