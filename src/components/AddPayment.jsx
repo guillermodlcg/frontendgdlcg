@@ -59,7 +59,7 @@ function AddPayment({ onStripeCheckout, onPickupConfirm }) {
     onPickupConfirm(data.userName); // pasa userName directo, sin depender del state
   };
 
-  const reviewConfirm = () => { updateStepOrder(1); };
+  const reviewConfirm = () => { updateStepOrder(2); };
 
   const handleStripeClick = async () => {
     if (isLoading) return;
@@ -132,7 +132,7 @@ function AddPayment({ onStripeCheckout, onPickupConfirm }) {
         <div style={{ borderTop: "1px solid #e5e0d8", padding: "16px 28px", display: "flex", justifyContent: "space-between", background: "#fafaf8" }}>
           <button type="button" onClick={reviewConfirm}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", border: "1px solid #e5e0d8", borderRadius: 6, padding: "10px 20px", cursor: "pointer", ...DM(12, 600, { color: "#0f1f35" }) }}>
-            <GrFormPreviousLink size={18} /> Revisar Orden
+            <GrFormPreviousLink size={18} /> Dirección de envío
           </button>
 
           {paymentType === "pickup" ? (
