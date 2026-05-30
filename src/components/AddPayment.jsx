@@ -34,11 +34,9 @@ function AddPayment({ onStripeCheckout }) {
     },
   });
 
-  // ✅ useEffect para actualizar userName cuando user esté disponible
   useEffect(() => {
     if (user?.username || user?.name) {
-      const userName = user?.name || user?.username || "";
-      setValue("userName", userName);
+      setValue("userName", user?.name || user?.username || "");
     }
   }, [user, setValue]);
 
@@ -46,22 +44,16 @@ function AddPayment({ onStripeCheckout }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const paymentMethod = watch("paymentMethod");
-
   const handlePaymentMethodChange = (method) => {
     setValue("paymentMethod", method);
     setPaymenType(method);
   };
 
-  // Para pickup: validar el campo antes de abrir el modal
   const handlePickupClick = async () => {
     const valid = await trigger("userName");
-    if (valid) {
-      setIsModalOpen(true);
-    }
+    if (valid) setIsModalOpen(true);
   };
 
-  // onSubmit solo se ejecuta si handleSubmit valida correctamente
   const onSubmit = (data) => {
     updatePayment({ paymentMethod: "pickup", userName: data.userName });
     updateStepOrder(4);
@@ -73,8 +65,7 @@ function AddPayment({ onStripeCheckout }) {
     if (isLoading) return;
     setIsLoading(true);
     try {
-      updatePayment({ paymentMethod: "card" });
-      await onStripeCheckout();
+      await onStripeCheckout("card");
     } catch (err) {
       console.error("Error al iniciar pago con Stripe:", err);
     } finally {
@@ -145,19 +136,14 @@ function AddPayment({ onStripeCheckout }) {
           </button>
 
           {paymentType === "pickup" ? (
-            <button
-              type="button"
-              onClick={handlePickupClick}
+            <button type="button" onClick={handlePickupClick}
               style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
               onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
               onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
               Finalizar pedido <GrFormNextLink size={18} />
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={handleStripeClick}
-              disabled={isLoading}
+            <button type="button" onClick={handleStripeClick} disabled={isLoading}
               style={{ display: "flex", alignItems: "center", gap: 6, background: isLoading ? "#6b7a90" : "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: isLoading ? "not-allowed" : "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
               onMouseEnter={e => { if (!isLoading) e.currentTarget.style.background = "#1d4b8a"; }}
               onMouseLeave={e => { if (!isLoading) e.currentTarget.style.background = "#0f1f35"; }}>
@@ -168,16 +154,3 @@ function AddPayment({ onStripeCheckout }) {
 
         <ConfirmModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onConfirm={handleSubmit(onSubmit)}
-          title="Confirmar Pedido"
-          text="¿Estás seguro que deseas confirmar este pedido? Esta acción no se puede deshacer"
-          btnAccept="Confirmar"
-          btnCancel="Cancelar"
-        />
-      </div>
-    </div>
-  );
-}
-
-export default AddPayment;
