@@ -13,7 +13,7 @@ const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-s
 function SalesPage() {
   const {
     address, payment, cart, updateStepOrder, initOrder, stepOrder,
-    clearCart, getTotalProducts, calculateSubTotal, calculateIva, calculateTotal,
+    clearCart, getTotalProducts, calculateSubTotal, calculateIva,
   } = useProducts();
 
   const { createOrder } = useOrders();
@@ -28,11 +28,12 @@ function SalesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const finalizingSale = async (forcedMethod) => {
+  const finalizingSale = async (forcedMethod, forcedUserName) => {
     if (isProcessing.current) return;
     isProcessing.current = true;
 
     const method = forcedMethod || payment.paymentMethod;
+    const userName = forcedUserName || payment.userName;
 
     try {
       if (method === 'card') {
@@ -75,7 +76,7 @@ function SalesPage() {
             talla: (['XS','S','M','L','XL','XXL','Única','Único'].includes(item.talla) ? item.talla : 'Única'),
             color: item.color || 'Sin especificar',
           })),
-          paymentMethod: { method: 'pickup', userName: payment.userName },
+          paymentMethod: { method: 'pickup', userName: userName },
           totalProducts: getTotalProducts().toString(),
           subTotal: sub.toFixed(2),
           iva: iva.toFixed(2),
@@ -95,10 +96,9 @@ function SalesPage() {
     }
   };
 
-  useEffect(() => {
-    if (stepOrder === 4) finalizingSale();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepOrder]);
+  const handlePickupConfirm = (userName) => {
+    finalizingSale('pickup', userName);
+  };
 
   return (
     <div style={{ background: "#fafaf8", minHeight: "100vh", padding: "40px 16px", boxSizing: "border-box" }}>
@@ -138,7 +138,12 @@ function SalesPage() {
         {/* Step content */}
         <div>
           {stepOrder === 1 && <CartResume />}
-          {stepOrder === 2 && <AddPayment onStripeCheckout={finalizingSale} />}
+          {stepOrder === 2 && (
+            <AddPayment
+              onStripeCheckout={finalizingSale}
+              onPickupConfirm={handlePickupConfirm}
+            />
+          )}
           {stepOrder === 3 && <AddAddress />}
         </div>
 
