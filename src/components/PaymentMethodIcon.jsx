@@ -7,12 +7,16 @@ import {
 } from "react-icons/fa";
 
 function PaymentMethodIcon({ method }) {
-  //Objeto de mapeo para los íconos y colores
   const paymentMethods = {
     card: {
       icon: FaCreditCard,
       color: "text-indigo-500",
       label: "Tarjeta",
+    },
+    card_stripe: {
+      icon: FaCreditCard,
+      color: "text-indigo-500",
+      label: "Tarjeta (Stripe)",
     },
     cash: {
       icon: FaMoneyBillWave,
@@ -32,6 +36,11 @@ function PaymentMethodIcon({ method }) {
   };
 
   const config = paymentMethods[method];
+
+  if (!config) {
+    return <span style={{ color: "#8a9bb0", fontSize: 13 }}>{method || "Sin método"}</span>;
+  }
+
   const IconComponent = config.icon;
 
   return (
