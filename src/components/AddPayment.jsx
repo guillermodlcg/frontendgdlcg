@@ -22,7 +22,7 @@ const INPUT_STYLE = (hasError) => ({
 const LABEL_STYLE = DM(10, 600, { textTransform: "uppercase", letterSpacing: "1.5px", color: "#8a9bb0", display: "block", marginBottom: 6 });
 const ICON_WRAP = { position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" };
 
-function AddPayment({ onStripeCheckout }) {
+function AddPayment({ onStripeCheckout, onPickupConfirm }) {
   const { updatePayment, updateStepOrder } = useProducts();
   const { user } = useAuth();
 
@@ -56,7 +56,7 @@ function AddPayment({ onStripeCheckout }) {
 
   const onSubmit = (data) => {
     updatePayment({ paymentMethod: "pickup", userName: data.userName });
-    updateStepOrder(4);
+    onPickupConfirm(data.userName); // pasa userName directo, sin depender del state
   };
 
   const reviewConfirm = () => { updateStepOrder(1); };
@@ -152,7 +152,7 @@ function AddPayment({ onStripeCheckout }) {
           )}
         </div>
 
-           <ConfirmModal
+        <ConfirmModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onConfirm={handleSubmit(onSubmit)}
