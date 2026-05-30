@@ -30,7 +30,7 @@ function AddPayment({ onStripeCheckout }) {
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       paymentMethod: "pickup",
-      userName: "",  // Inicia vacío
+      userName: user?.name || user?.username || "",
     },
   });
 
