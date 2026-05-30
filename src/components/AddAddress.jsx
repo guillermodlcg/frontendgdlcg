@@ -6,8 +6,7 @@ import { FaRegAddressCard } from "react-icons/fa";
 import { MdPhoneIphone } from "react-icons/md";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
 import { useProducts } from "../context/ProductContext";
-import ConfirmModal from "./ConfirmModal";
-import React, { useState } from "react";
+import React from "react";
 
 const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
 const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
@@ -22,14 +21,13 @@ const INPUT_STYLE = (hasError) => ({
 function AddAddress() {
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(addressSchema) });
   const { updateAddress, updateStepOrder } = useProducts();
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const onSubmit = handleSubmit((values) => {
     updateAddress(values);
-    updateStepOrder(4);
+    updateStepOrder(3);
   });
 
-  const reviewPayment = () => { updateStepOrder(2); };
+  const reviewPayment = () => { updateStepOrder(1); };
 
   const fields = [
     { name: "name",    label: "Nombre completo",    placeholder: "Nombre completo",       icon: <IoPersonOutline size={16} color="#8a9bb0" />,  error: errors.name },
@@ -70,25 +68,15 @@ function AddAddress() {
         <div style={{ borderTop: "1px solid #e5e0d8", padding: "16px 28px", display: "flex", justifyContent: "space-between", background: "#fafaf8" }}>
           <button type="button" onClick={reviewPayment}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", border: "1px solid #e5e0d8", borderRadius: 6, padding: "10px 20px", cursor: "pointer", ...DM(12, 600, { color: "#0f1f35" }) }}>
-            <GrFormPreviousLink size={18} /> Método de pago
+            <GrFormPreviousLink size={18} /> Confirmar Pedido
           </button>
-          <button type="button" onClick={() => setIsModalOpen(true)}
+          <button type="button" onClick={onSubmit}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
             onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
             onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
-            Finalizar Pedido <GrFormNextLink size={18} />
+            Método de pago <GrFormNextLink size={18} />
           </button>
         </div>
-
-        <ConfirmModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onConfirm={handleSubmit(onSubmit)}
-          title="Confirmar Pedido"
-          text="¿Estás seguro que deseas confirmar este pedido? Esta acción no se puede deshacer"
-          btnAccept="Confirmar"
-          btnCancel="Cancelar"
-        />
       </div>
     </div>
   );
