@@ -22,7 +22,8 @@ const INPUT_STYLE = (hasError) => ({
 const LABEL_STYLE = DM(10, 600, { textTransform: "uppercase", letterSpacing: "1.5px", color: "#8a9bb0", display: "block", marginBottom: 6 });
 const ICON_WRAP = { position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" };
 
-function AddPayment() {
+// ─── CAMBIO: recibe onStripeCheckout como prop desde SalesPage ───
+function AddPayment({ onStripeCheckout }) {
   const { updatePayment, updateStepOrder } = useProducts();
   const { user } = useAuth();
 
@@ -33,6 +34,8 @@ function AddPayment() {
 
   const [paymentType, setPaymenType] = useState("pickup");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // ─── CAMBIO: estado de carga para evitar doble clic ───
+  const [isLoading, setIsLoading] = useState(false);
 
   const paymentMethod = watch("paymentMethod");
 
@@ -41,12 +44,27 @@ function AddPayment() {
     setPaymenType(method);
   };
 
+  // onSubmit solo se usa para el flujo pickup (vía ConfirmModal)
   const onSubmit = (data) => {
     updatePayment({ paymentMethod, userName: data.userName });
     updateStepOrder(4);
   };
 
   const reviewConfirm = () => { updateStepOrder(1); };
+
+  // ─── CAMBIO: manejador para el flujo Stripe ───
+  const handleStripeClick = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      updatePayment({ paymentMethod: "card" });
+      await onStripeCheckout();
+    } catch (err) {
+      console.error("Error al iniciar pago con Stripe:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div style={{ maxWidth: 560, margin: "0 auto" }}>
@@ -101,20 +119,28 @@ function AddPayment() {
             style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", border: "1px solid #e5e0d8", borderRadius: 6, padding: "10px 20px", cursor: "pointer", ...DM(12, 600, { color: "#0f1f35" }) }}>
             <GrFormPreviousLink size={18} /> Revisar Orden
           </button>
-          <button type="button"
-            onClick={() => {
-              if (paymentType === "pickup") {
-                setIsModalOpen(true);
-              } else {
-                updatePayment({ paymentMethod: "card" });
-                updateStepOrder(4);
-              }
-            }}
-            style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
-            onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
-            onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
-            {paymentType === "pickup" ? "Finalizar pedido" : "Continuar al pago"} <GrFormNextLink size={18} />
-          </button>
+
+          {/* ─── CAMBIO: botón separado según método de pago ─── */}
+          {paymentType === "pickup" ? (
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              style={{ display: "flex", alignItems: "center", gap: 6, background: "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
+              onMouseEnter={e => e.currentTarget.style.background = "#1d4b8a"}
+              onMouseLeave={e => e.currentTarget.style.background = "#0f1f35"}>
+              Finalizar pedido <GrFormNextLink size={18} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleStripeClick}
+              disabled={isLoading}
+              style={{ display: "flex", alignItems: "center", gap: 6, background: isLoading ? "#6b7a90" : "#0f1f35", border: "none", borderRadius: 6, padding: "10px 20px", cursor: isLoading ? "not-allowed" : "pointer", transition: "background 0.15s", ...DM(12, 600, { color: "#fff" }) }}
+              onMouseEnter={e => { if (!isLoading) e.currentTarget.style.background = "#1d4b8a"; }}
+              onMouseLeave={e => { if (!isLoading) e.currentTarget.style.background = "#0f1f35"; }}>
+              {isLoading ? "Redirigiendo..." : "Continuar al pago"} <GrFormNextLink size={18} />
+            </button>
+          )}
         </div>
 
         <ConfirmModal
