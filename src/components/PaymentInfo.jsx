@@ -5,7 +5,6 @@ import { BsCalendar2Date } from "react-icons/bs";
 import { FaCcMastercard } from "react-icons/fa6";
 
 const DM = (size, weight = 400, extra = {}) => ({ fontFamily: "'DM Sans', sans-serif", fontWeight: weight, fontSize: size, ...extra });
-
 const ROW = { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 0", borderBottom: "1px solid #f0ede8" };
 const LABEL = { ...DM("11px", 500), color: "#8a9bb0", textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", alignItems: "center", gap: 6 };
 const VALUE = DM("13px", 500, { color: "#0f1f35" });
@@ -39,6 +38,13 @@ function PaymentInfo({ method, cardDetails, userName }) {
         </>
       )}
 
+      {method === "card_stripe" && (
+        <div style={{ ...ROW, borderBottom: "none" }}>
+          <span style={LABEL}><IoCardOutline size={14} /> Procesado por</span>
+          <span style={VALUE}>Stripe Checkout</span>
+        </div>
+      )}
+
       {method === "pickup" && (
         <>
           <div style={ROW}>
@@ -50,12 +56,6 @@ function PaymentInfo({ method, cardDetails, userName }) {
             <span style={VALUE}>{userName}</span>
           </div>
         </>
-      )}
-
-      {method !== "card" && method !== "pickup" && (
-        <div style={{ padding: "16px 0", textAlign: "center" }}>
-          <span style={DM("13px", 400, { color: "#dc2626" })}>Método de pago no reconocido: {method}</span>
-        </div>
       )}
     </div>
   );
