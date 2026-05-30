@@ -20,7 +20,7 @@ function SalesPage() {
   const navigate = useNavigate();
   const isProcessing = useRef(false);
 
-  const steps = ["Confirmar Pedido", "Información de pago", "Dirección de envío", "Finalizar"];
+  const steps = ["Confirmar Pedido", "Dirección de envío", "Método de pago"];
 
   useEffect(() => {
     if (stepOrder === 0) navigate("/getallproducts");
@@ -138,13 +138,13 @@ function SalesPage() {
         {/* Step content */}
         <div>
           {stepOrder === 1 && <CartResume />}
-          {stepOrder === 2 && (
+          {stepOrder === 2 && <AddAddress />}
+          {stepOrder === 3 && (
             <AddPayment
               onStripeCheckout={finalizingSale}
               onPickupConfirm={handlePickupConfirm}
             />
           )}
-          {stepOrder === 3 && <AddAddress />}
         </div>
 
       </div>
