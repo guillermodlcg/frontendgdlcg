@@ -6,7 +6,7 @@ import { IoPersonOutline } from "react-icons/io5";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
 import { MdLock } from "react-icons/md";
 import { useAuth } from "../context/AuthContext";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ConfirmModal from "./ConfirmModal";
 
 const BC = (size, extra = {}) => ({ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: size, ...extra });
@@ -26,16 +26,21 @@ function AddPayment({ onStripeCheckout }) {
   const { updatePayment, updateStepOrder } = useProducts();
   const { user } = useAuth();
 
-  // Usar name o username, lo que esté disponible
-  const defaultName = user?.name || user?.username || "";
-
   const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       paymentMethod: "pickup",
-      userName: defaultName,
+      userName: "",  // Inicia vacío
     },
   });
+
+  // ✅ useEffect para actualizar userName cuando user esté disponible
+  useEffect(() => {
+    if (user?.username || user?.name) {
+      const userName = user?.name || user?.username || "";
+      setValue("userName", userName);
+    }
+  }, [user, setValue]);
 
   const [paymentType, setPaymenType] = useState("pickup");
   const [isModalOpen, setIsModalOpen] = useState(false);
